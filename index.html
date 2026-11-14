@@ -19,7 +19,7 @@
 <style>
 /* Layout: one narrow column — tabs + month bar, a summary panel, then checklists or charts.
    Colours match the Money overview dashboard: deep navy with a faint grid, glowing neon accents.
-   Each tab has its own accent: Overview cyan, Budget lime, Debts rose, Timeline violet, Payoff amber.
+   Each tab has its own accent: Budget lime, Debts rose, Timeline violet, Payoff amber.
    Bills are cyan, spending magenta, interest-charging debt rose, interest-free debt violet.
    Dark-first; light mode keeps the same accents, deepened to read on white, with softer glows. */
 :root {
@@ -70,7 +70,6 @@
   --soft: rgba(30, 50, 110, .07); --soft-2: rgba(30, 50, 110, .1); --tick-line: rgba(86, 97, 128, .55); --hover: rgba(14, 116, 144, .07);
   --field: #ffffff; --field-2: rgba(255, 255, 255, .75); --tip-bg: rgba(255, 255, 255, .98); --h1-start: #0f172a;
   color-scheme: light }
-body[data-view="overview"] { --brand: var(--cyan); --brand-text: var(--cyan); }
 body[data-view="budget"] { --brand: var(--lime); --brand-text: var(--lime); }
 body[data-view="debts"] { --brand: var(--rose); --brand-text: var(--rose); }
 body[data-view="timeline"] { --brand: var(--violet); --brand-text: var(--violet); }
@@ -134,6 +133,7 @@ h1 { font-family: var(--display); font-weight: 800; font-size: clamp(28px, 7vw, 
 .stat span { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .8; }
 .stat b { font-size: 18px; font-weight: 700; overflow-wrap: anywhere; }
 .income-input { background: color-mix(in srgb, currentColor 12%, transparent); border: 0; border-radius: var(--r-sm); padding: 2px 6px; width: 100%; font-weight: 700; font-size: 18px; }
+.income-note { grid-column: 1 / -1; margin: 0; font-size: 13px; color: var(--muted); }
 .meter { height: 10px; border-radius: 99px; background: color-mix(in srgb, currentColor 18%, transparent); overflow: hidden; position: relative; z-index: 1; }
 .meter i { display: block; height: 100%; background: currentColor; border-radius: 99px; transition: width .3s; }
 @media (max-width: 560px) {
@@ -357,14 +357,13 @@ h1 { font-family: var(--sans); font-weight: 600; letter-spacing: .01em; font-siz
 .tab { font-family: var(--mono); font-weight: 600; font-size: 12px; letter-spacing: .12em; border-radius: 7px; }
 .tab[aria-selected="true"] { background: color-mix(in srgb, var(--brand) 16%, transparent); color: var(--brand); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 55%, transparent), 0 0 calc(16px * var(--glow)) color-mix(in srgb, var(--brand) 25%, transparent); }
 .tab::before { box-shadow: 0 0 calc(8px * var(--glow)) currentColor; }
-#tabOverview::before { background: var(--cyan); color: var(--cyan); }
 #tabBudget::before { background: var(--lime); color: var(--lime); }
 #tabDebts::before { background: var(--rose); color: var(--rose); }
 #tabTimeline::before { background: var(--violet); color: var(--violet); }
 #tabPayoff::before { background: var(--amber); color: var(--amber); }
 .tab[aria-selected="true"]::before { background: var(--brand); color: var(--brand); }
 @media (max-width: 640px) {
-  .tabs { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .tab { font-size: clamp(8px, 2.4vw, 10.5px); letter-spacing: .04em; }
 }
 .iconbtn, #month { background: var(--panel); border-color: var(--line); font-family: var(--mono); }
@@ -454,43 +453,14 @@ ol.order .n { font-family: var(--mono); background: var(--soft-2); }
 .toast { background: var(--tip-bg); color: var(--fg); border: 1px solid var(--line-hi); box-shadow: 0 0 calc(20px * var(--glow)) var(--glow-cyan); }
 .recalc h2 { font-family: var(--mono); font-weight: 500; letter-spacing: .06em; }
 
-/* ---------- Overview ---------- */
-.ov-lede { margin: 0; color: var(--muted); font-size: 16px; max-width: 70ch; }
-.ov-lede b { color: var(--fg); font-family: var(--mono); font-weight: 500; }
-.ov-sec { display: grid; gap: 14px; }
-.ov-sec > h2 { font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin: 0; display: flex; align-items: center; gap: 10px; }
-.ov-sec > h2::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line-hi), transparent); }
-.ov-sec > h2 span { color: var(--fg); }
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 12px; }
-.tile { border-radius: var(--r-md); padding: 14px 16px; display: grid; gap: 4px; align-content: start; min-width: 0; }
-.tile > span { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-.tile b { font-family: var(--mono); font-weight: 500; font-size: clamp(20px, 3.4vw, 26px); line-height: 1.15; color: var(--accent); overflow-wrap: anywhere;
-  text-shadow: 0 0 calc(18px * var(--glow)) color-mix(in srgb, var(--accent) 55%, transparent); }
-.tile small { font-size: 12px; color: var(--muted); }
+/* ---------- Shared bits ---------- */
 .a-cyan { --accent: var(--cyan); } .a-mag { --accent: var(--mag); } .a-violet { --accent: var(--violet); } .a-lime { --accent: var(--lime); } .a-rose { --accent: var(--rose); } .a-amber { --accent: var(--amber); }
-.tile.bad { --accent: var(--rose); }
-.tile-in { font-family: var(--mono); font-weight: 500; font-size: clamp(20px, 3.4vw, 26px); line-height: 1.15; color: var(--accent); width: 100%; min-width: 0;
-  background: var(--soft); border: 1px solid transparent; border-radius: 6px; padding: 2px 6px; margin-left: -6px;
-  text-shadow: 0 0 calc(18px * var(--glow)) color-mix(in srgb, var(--accent) 55%, transparent); }
-.tile-in:hover { border-color: var(--line); }
-.tile-in:focus { outline: none; border-color: var(--line-hi); box-shadow: 0 0 0 1px var(--line-hi); background: var(--field); }
-.tile-in[readonly] { background: transparent; cursor: default; }
-label.tile { cursor: text; }
-.have-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: -4px; }
-.have-head h3 { margin: 0; font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--fg); }
-.have-head span { font-size: 12px; color: var(--muted); }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 12px; }
 .cards .wide { grid-column: 1 / -1; }
 .cards .card { align-content: start; }
 .card h3 { margin: 0; font-size: 16px; font-weight: 600; }
-.ov-note { margin: 0; color: var(--muted); font-size: 13px; }
-.ov-note b { color: var(--fg); font-family: var(--mono); font-weight: 500; }
-.ov-link { background: none; border: 0; padding: 0; color: var(--cyan); font-family: var(--mono); font-size: 13px; justify-self: start; }
-.ov-link:hover { text-decoration: underline; }
-.chart .hb-bar { pointer-events: none; }
 .chart .bar-hit { fill: transparent; cursor: pointer; }
 .chart .bar-hit:hover { fill: var(--hover); }
-@media (max-width: 560px) { .tile { padding: 12px; } }
 
 /* ---------- Theme switch ---------- */
 .kicker-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 -16px; }
@@ -555,7 +525,6 @@ body { min-height: 100vh; min-height: 100dvh; -webkit-tap-highlight-color: trans
 <div class="wrap" id="app">
   <div class="top">
     <div class="tabs" role="tablist" aria-label="Pages">
-      <button class="tab" role="tab" id="tabOverview" data-view="overview" aria-selected="false"><span class="long">OVERVIEW</span><span class="short">OVERVIEW</span></button>
       <button class="tab" role="tab" id="tabBudget" data-view="budget" aria-selected="true"><span class="long">BUDGET</span><span class="short">BUDGET</span></button>
       <button class="tab" role="tab" id="tabDebts" data-view="debts" aria-selected="false"><span class="long">DEBTS</span><span class="short">DEBTS</span></button>
       <button class="tab" role="tab" id="tabTimeline" data-view="timeline" aria-selected="false"><span class="long">DEBT REPAYMENT TIMELINE</span><span class="short">TIMELINE</span></button>
@@ -573,85 +542,6 @@ body { min-height: 100vh; min-height: 100dvh; -webkit-tap-highlight-color: trans
 
   <div class="status" id="status">Loading your budget…</div>
 
-  <!-- OVERVIEW VIEW -->
-  <div id="overviewView" hidden>
-    <div class="view-inner" style="display:grid;gap:28px">
-      <p class="ov-lede" id="ovLede"></p>
-
-      <section class="ov-sec" aria-labelledby="hOvBudget">
-        <h2 id="hOvBudget">Budget · <span id="ovMonth">—</span></h2>
-        <div class="tiles">
-          <div class="tile a-violet"><span>Income</span><b id="oIncome">—</b></div>
-          <div class="tile a-cyan"><span>Bills</span><b id="oBills">—</b><small>Ticked debt repayments drop out</small></div>
-          <div class="tile a-mag"><span>Spending &amp; extras</span><b id="oSpend">—</b></div>
-          <div class="tile a-lime" id="oLeftTile"><span id="oLeftLabel">Left over</span><b id="oLeft">—</b><small>Income minus bills and spending</small></div>
-          <div class="tile a-amber"><span>Still to pay</span><b id="oTodo">—</b><small>Lines not yet ticked off</small></div>
-        </div>
-        <div class="cards">
-          <section class="card" style="--accent: var(--violet)" aria-labelledby="hOvSplit">
-            <h3 id="hOvSplit">How <span id="ovMonth2">—</span>’s income splits</h3>
-            <p>Share of income going to bills and spending, and what remains.</p>
-            <div class="chart" id="ovDonut" role="img" aria-label="Donut chart of this month’s income split"></div>
-          </section>
-          <section class="card" style="--accent: var(--mag)" aria-labelledby="hOvWhere">
-            <h3 id="hOvWhere">Where the money goes</h3>
-            <div class="keyrow" aria-label="Key"><span><i style="background:var(--cyan);color:var(--cyan)"></i>Bills</span><span><i style="background:var(--mag);color:var(--mag)"></i>Spending &amp; extras</span></div>
-            <div class="chart" id="ovItems" role="img" aria-label="Bar chart of this month’s bills and spending, largest first"></div>
-          </section>
-          <section class="card wide" style="--accent: var(--lime)" aria-labelledby="hOvLeft">
-            <h3 id="hOvLeft">Left over each month</h3>
-            <p>Income minus every planned bill and spending line, across your whole plan. Tap a bar to see that month.</p>
-            <div class="chart" id="ovMonths" role="img" aria-label="Bar chart of what is left over in each month of the plan"></div>
-          </section>
-        </div>
-      </section>
-
-      <section class="ov-sec" aria-labelledby="hOvDebt">
-        <h2 id="hOvDebt">Debt and net position · <span id="ovMonth3">—</span></h2>
-        <div class="tiles">
-          <div class="tile a-rose"><span>Total owed</span><b id="oOwed">—</b><small id="oOwedNote"></small></div>
-          <div class="tile a-rose"><span>On interest-charging debt</span><b id="oIntDebt">—</b></div>
-          <div class="tile a-amber"><span>Interest added per month</span><b id="oIntMonth">—</b><small>Estimate: balance × rate ÷ 12</small></div>
-          <div class="tile a-mag"><span>Pay-later per month</span><b id="oPayLater">—</b><small>Not in your budget lines</small></div>
-          <div class="tile a-violet" id="oNetTile"><span>Net position</span><b id="oNet">—</b><small>Savings, investments and KiwiSaver minus debt</small></div>
-        </div>
-        <div class="have-head"><h3 id="hOvHave">What you have</h3><span id="oHaveNote">Tap an amount to change it · counts toward net position</span></div>
-        <div class="tiles" role="group" aria-labelledby="hOvHave">
-          <label class="tile a-lime"><span>Savings</span><input id="oSavings" class="tile-in" inputmode="decimal" aria-label="Savings"></label>
-          <label class="tile a-cyan"><span>Investments</span><input id="oInvest" class="tile-in" inputmode="decimal" aria-label="Investments"></label>
-          <label class="tile a-violet"><span>KiwiSaver</span><input id="oKiwi" class="tile-in" inputmode="decimal" aria-label="KiwiSaver"></label>
-          <div class="tile a-lime"><span>Total you have</span><b id="oHave">—</b></div>
-        </div>
-        <p class="ov-note" id="ovDebtNote"></p>
-        <div class="cards">
-          <section class="card wide" style="--accent: var(--rose)" aria-labelledby="hOvProj">
-            <h3 id="hOvProj">Projected debt over time</h3>
-            <p>What you’ll owe at the start of each month if every planned repayment is made. Ticked payments count as made.</p>
-            <div class="keyrow" aria-label="Key"><span><i class="sw-int"></i>Charges interest</span><span><i class="sw-free"></i>Interest-free</span></div>
-            <div class="chart" id="ovProj" role="img" aria-label="Stacked area chart of projected debt falling over time"></div>
-          </section>
-          <section class="card" style="--accent: var(--amber)" aria-labelledby="hOvSplitPay">
-            <h3 id="hOvSplitPay">Where each repayment goes</h3>
-            <p>Each interest-charging debt’s monthly payment, split into interest and actually paying it down.</p>
-            <div class="keyrow" aria-label="Key"><span><i style="background:var(--rose);color:var(--rose)"></i>Interest</span><span><i style="background:var(--lime);color:var(--lime)"></i>Paying it down</span></div>
-            <div class="chart" id="ovPaySplit" role="img" aria-label="Bars splitting each repayment into interest and paydown"></div>
-          </section>
-          <section class="card" style="--accent: var(--rose)" aria-labelledby="hOvOwe">
-            <h3 id="hOvOwe">What you owe</h3>
-            <p>Each debt’s balance this month, largest first.</p>
-            <div class="keyrow" aria-label="Key"><span><i class="sw-int"></i>Charges interest</span><span><i class="sw-free"></i>Interest-free</span></div>
-            <div class="chart" id="ovOwe" role="img" aria-label="Bar chart of each debt’s balance"></div>
-          </section>
-        </div>
-        <button class="ov-link" type="button" id="ovToTimeline">See when each debt is paid off →</button>
-      </section>
-
-      <div class="foot">
-        <span>Everything here is worked out live from your Budget and Debts tabs, so it changes as soon as you tick, edit or add something.</span>
-      </div>
-    </div>
-  </div>
-
   <!-- BUDGET VIEW -->
   <div id="budgetView" hidden>
     <div class="view-inner" style="display:grid;gap:24px">
@@ -661,10 +551,11 @@ body { min-height: 100vh; min-height: 100dvh; -webkit-tap-highlight-color: trans
           <span class="big num" id="left">$0</span>
         </div>
         <div class="stats" id="budgetStats" data-part="budgetStats">
-          <label class="stat"><span>Income</span><input class="income-input num" id="income" inputmode="decimal" aria-label="Income this month"></label>
+          <label class="stat"><span>Monthly income</span><input class="income-input num" id="income" inputmode="decimal" aria-label="Monthly income, from this month on"></label>
           <div class="stat"><span class="key bills">Bills</span><b class="num" id="sBills"></b></div>
           <div class="stat"><span class="key spend">Spending</span><b class="num" id="sSpend"></b></div>
           <div class="stat"><span>Still to pay</span><b class="num" id="sTodo"></b></div>
+          <p class="income-note" id="incomeNote"></p>
         </div>
         <button type="button" class="hero-more" data-sec="budgetStats" data-open="Hide breakdown" data-closed="Income, bills and spending" aria-controls="budgetStats">Hide breakdown<i class="chev" aria-hidden="true"></i></button>
       </div>
@@ -903,26 +794,38 @@ const LocalDB = (() => {
   let data = { months: {}, debts: {}, archive: {}, assets: null };
   const subs = { months: [], debts: [], archive: [], assets: [] };
   const clone = v => v == null ? v : JSON.parse(JSON.stringify(v));
+  let conn = null;   // one open connection, reopened if it fails or iOS closes it
   function idb() {
-    return new Promise((res, rej) => {
+    if (!conn) conn = new Promise((res, rej) => {
       if (!('indexedDB' in window)) return rej(new Error('no indexedDB'));
       const r = indexedDB.open('budget-tracker', 1);
       r.onupgradeneeded = () => r.result.createObjectStore('kv');
-      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
-    });
+      r.onsuccess = () => { r.result.onclose = () => { conn = null; }; res(r.result); }; r.onerror = () => rej(r.error);
+    }).catch(e => { conn = null; throw e; });
+    return conn;
   }
   async function read() {
     try { const db = await idb(); return await new Promise((res, rej) => { const q = db.transaction('kv').objectStore('kv').get(KEY); q.onsuccess = () => res(q.result || null); q.onerror = () => rej(q.error); }); }
     catch (e) { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e2) { return null; } }
   }
-  async function write() {
+  async function saveNow() {
     const snap = clone(data);
-    try { const db = await idb(); await new Promise((res, rej) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(snap, KEY); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
-    catch (e) { localStorage.setItem(KEY, JSON.stringify(snap)); }
+    const put = async () => { const db = await idb(); await new Promise((res, rej) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(snap, KEY); t.oncomplete = res; t.onerror = () => rej(t.error); }); };
+    try { await put(); }
+    catch (e) { conn = null; try { await put(); } catch (e2) { localStorage.setItem(KEY, JSON.stringify(snap)); } }   // retry on a fresh connection first
+  }
+  // Changes made in the same moment (like income across every month) share one save
+  let queued = null;
+  function write() {
+    if (!queued) queued = Promise.resolve().then(() => { queued = null; return saveNow(); });
+    return queued;
   }
   const colSnap = name => ({ docs: Object.keys(data[name]).sort().map(id => ({ id, data: () => clone(data[name][id]) })) });
   const assetSnap = () => ({ exists: !!data.assets, data: () => clone(data.assets) });
-  const emit = name => setTimeout(() => subs[name].forEach(cb => cb(name === 'assets' ? assetSnap() : colSnap(name))), 0);
+  // At most one snapshot per collection per tick, so a batch of changes re-renders once
+  const emitting = new Set();
+  const emit = name => { if (emitting.has(name)) return; emitting.add(name);
+    setTimeout(() => { emitting.delete(name); subs[name].forEach(cb => cb(name === 'assets' ? assetSnap() : colSnap(name))); }, 0); };
   async function change(name, fn) { fn(); await write(); emit(name); }
   const docRef = (name, id) => ({
     set: v => change(name, () => { data[name][id] = clone(v); }),
@@ -995,6 +898,16 @@ async function saveMonth(key, patch, okMsg) {
   try { await state.col.doc(key).update(patch); if (okMsg) toast(okMsg); } catch (e) { toast(failMsg(e)); }
 }
 function saveItems(items, okMsg, key) { key = key || state.current; state.months[key].items = items; renderAll(); saveMonth(key, { items }, okMsg); }
+// Several months at once, e.g. an income or bill change carried forward: { '2026-11': patch, … }
+async function saveMonths(patches, okMsg) {
+  if (!state.col || !state.canEdit) return;
+  for (const [k, patch] of Object.entries(patches)) Object.assign(state.months[k], patch);
+  renderAll();
+  try { await Promise.all(Object.entries(patches).map(([k, patch]) => state.col.doc(k).update(patch))); if (okMsg) toast(okMsg); }
+  catch (e) { toast(failMsg(e)); }
+}
+// The months from `key` on, in order
+const monthsFrom = key => keys().filter(k => k >= key);
 async function saveDebt(d, okMsg) {
   if (!state.dcol || !state.canEdit) return;
   state.debts[d.id] = d; renderAll();
@@ -1089,7 +1002,18 @@ function itemRow(it, sortable) {
   amt.onchange = () => {
     const n = parseAmt(amt.value);
     if (n === null) { amt.value = money(it.amount); toast('Type a number, like 45 or 45.50'); return; }
-    saveItems(cur().items.map(x => x.id === it.id ? { ...x, amount: n } : x));
+    if (it.section !== 'bills') { saveItems(cur().items.map(x => x.id === it.id ? { ...x, amount: n } : x)); return; }
+    // A bill's new amount carries into later months that had the same old amount.
+    // Months with a different amount, like a smaller final instalment, are left alone.
+    const old = round2(Number(it.amount) || 0), same = x => it.id ? x.id === it.id : x.section === 'bills' && x.name === it.name;
+    const patches = { [state.current]: { items: cur().items.map(x => x.id === it.id ? { ...x, amount: n } : x) } };
+    let later = 0;
+    for (const k of monthsFrom(state.current).slice(1)) {
+      const items = state.months[k].items; let hit = false;
+      const next = items.map(x => { if (same(x) && round2(Number(x.amount) || 0) === old) { hit = true; return { ...x, amount: n }; } return x; });
+      if (hit) { patches[k] = { items: next }; later++; }
+    }
+    saveMonths(patches, later ? (it.name || 'Bill') + ' updated in ' + labelOf(state.current) + ' and ' + later + ' later month' + (later === 1 ? '' : 's') : undefined);
   };
   amt.onkeydown = e => { if (e.key === 'Enter') amt.blur(); };
   name.onkeydown = e => { if (e.key === 'Enter') name.blur(); };
@@ -1141,6 +1065,7 @@ function renderBudget() {
   const inc = $('income');
   if (document.activeElement !== inc) inc.value = money(m.income);
   inc.readOnly = !state.canEdit;
+  $('incomeNote').textContent = state.canEdit ? 'Changing your income updates ' + labelOf(state.current) + (monthsFrom(state.current).length > 1 ? ' and every month after.' : '.') : '';
   $('sBills').textContent = money(t.bills);
   $('sSpend').textContent = money(t.spend);
   $('sTodo').textContent = money(t.todo);
@@ -1747,239 +1672,6 @@ function drawCompare(s) {
 }
 
 
-/* ---------- overview ---------- */
-// Everything here reads the same state and helpers as the other tabs, so it is always live.
-const OC = { bills: 'var(--cyan)', spend: 'var(--mag)', left: 'var(--lime)', over: 'var(--rose)', int: 'var(--rose)', free: 'var(--violet)', down: 'var(--lime)', income: 'var(--violet)' };
-const glow = (c, r) => 'filter:drop-shadow(0 0 calc(' + (r || 3) + 'px * var(--glow)) ' + c + ')';
-const pct = (v, base) => Math.round(base ? v / base * 100 : 0) + '%';
-function tipRows(head, rows) { return '<b>' + esc(head) + '</b>' + rows.map(([k, v]) => esc(k) + ': <span class="num">' + esc(v) + '</span>').join('<br>'); }
-// Wire hover/tap tooltips onto every [data-i] hit area in a chart
-function wireTips(host, sel, content, onClick) {
-  const tip = host.querySelector('.tip');
-  host._out = () => { tip.hidden = true; host.querySelectorAll(sel + '.on').forEach(o => o.classList.remove('on')); };
-  host.querySelectorAll(sel).forEach(r => {
-    const show = e => {
-      const hr = host.getBoundingClientRect();
-      host.querySelectorAll(sel + '.on').forEach(o => o.classList.remove('on')); r.classList.add('on');
-      tip.innerHTML = content(+r.dataset.i);
-      placeTip(tip, host, e.clientX - hr.left, e.clientY - hr.top);
-    };
-    r.addEventListener('pointermove', show); r.addEventListener('pointerdown', show);
-    r.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') { tip.hidden = true; r.classList.remove('on'); } });
-    if (onClick) r.addEventListener('click', () => onClick(+r.dataset.i));
-  });
-}
-const svgOpen = (W, H) => '<svg width="100%" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMinYMin meet">';
-
-// Horizontal bars: name on the left, value at the bar's end
-function hbars(host, rows, o) {
-  if (!rows.length) { host.innerHTML = '<p class="ov-note">' + (o.empty || 'Nothing to show.') + '</p>'; host._out = null; return; }
-  const W = Math.max(280, host.clientWidth || 420), rh = 26, H = rows.length * rh + 2;
-  const maxCh = Math.max(8, Math.floor(W * 0.36 / 7.2));
-  const names = rows.map(r => { const n = o.label(r); return n.length > maxCh ? n.slice(0, maxCh - 1) + '…' : n; });
-  const lw = Math.min(W * 0.38, Math.max(...names.map(n => n.length)) * 7.2 + 14);
-  const vals = rows.map(r => o.fmt(o.value(r)));
-  const vw = Math.max(...vals.map(v => v.length)) * 7.6 + 12;
-  const max = Math.max(1, ...rows.map(o.value)), x = v => lw + Math.max(0, v) / max * (W - lw - vw);
-  let s = svgOpen(W, H);
-  rows.forEach((r, i) => {
-    const y = i * rh, c = o.color(r), w = Math.max(1.5, x(o.value(r)) - lw);
-    s += '<rect class="bar-hit row-hit" data-i="' + i + '" x="0" y="' + y + '" width="' + W + '" height="' + rh + '" rx="4"/>';
-    s += '<text class="t-name" x="' + (lw - 8) + '" y="' + (y + rh / 2 + 4) + '" text-anchor="end" pointer-events="none">' + esc(names[i]) + '</text>';
-    s += '<rect class="hb-bar" x="' + lw + '" y="' + (y + 7) + '" width="' + w + '" height="' + (rh - 14) + '" rx="2" style="fill:' + c + ';' + glow(c) + '"/>';
-    s += '<text class="v" x="' + (lw + w + 6) + '" y="' + (y + rh / 2 + 4) + '" pointer-events="none">' + esc(vals[i]) + '</text>';
-  });
-  host.innerHTML = s + '</svg><div class="tip" hidden></div>';
-  wireTips(host, '.bar-hit', i => tipRows(o.label(rows[i]), o.tip(rows[i])));
-}
-
-function arcPath(cx, cy, r0, r1, a0, a1) {
-  const p = (r, a) => (cx + r * Math.sin(a)).toFixed(2) + ' ' + (cy - r * Math.cos(a)).toFixed(2), big = a1 - a0 > Math.PI ? 1 : 0;
-  return 'M' + p(r1, a0) + ' A' + r1 + ' ' + r1 + ' 0 ' + big + ' 1 ' + p(r1, a1) + ' L' + p(r0, a1) + ' A' + r0 + ' ' + r0 + ' 0 ' + big + ' 0 ' + p(r0, a0) + ' Z';
-}
-function drawDonut(host, t, income) {
-  const parts = [
-    { name: 'Bills', v: t.bills, c: OC.bills },
-    { name: 'Spending', v: t.spend, c: OC.spend },
-    { name: t.left < 0 ? 'Over budget' : 'Left over', v: Math.abs(t.left), c: t.left < 0 ? OC.over : OC.left },
-  ].filter(p => p.v > 0.005);
-  const W = Math.max(260, host.clientWidth || 380), side = W >= 420, R = side ? Math.min(96, W * 0.21) : Math.min(96, W / 2 - 12);
-  const legendH = parts.length * 28, H = side ? Math.max(2 * R + 16, legendH) : 2 * R + 24 + legendH;
-  const cx = side ? R + 8 : W / 2, cy = R + 8, total = parts.reduce((a, p) => a + p.v, 0) || 1, base = income || total;
-  let s = svgOpen(W, H) + '<circle cx="' + cx + '" cy="' + cy + '" r="' + (R * 0.84) + '" style="fill:none;stroke:var(--soft-2);stroke-width:' + (R * 0.32) + '"/>';
-  let a = 0; const gap = parts.length > 1 ? 0.025 : 0;
-  parts.forEach((p, i) => {
-    const a1 = a + p.v / total * Math.PI * 2;
-    s += '<path class="bar-hit" data-i="' + i + '" d="' + arcPath(cx, cy, R * 0.68, R, a + gap, Math.max(a + gap + 0.001, a1 - gap)) + '" style="fill:' + p.c + ';' + glow(p.c, 5) + '"/>';
-    a = a1;
-  });
-  s += '<text x="' + cx + '" y="' + (cy - 6) + '" text-anchor="middle">Income</text><text class="v" x="' + cx + '" y="' + (cy + 16) + '" text-anchor="middle" style="font-size:17px">' + esc(whole(income)) + '</text>';
-  const lx = side ? 2 * R + 40 : 8, ly = side ? cy - legendH / 2 + 14 : 2 * R + 30;
-  parts.forEach((p, i) => {
-    const y = ly + i * 28;
-    s += '<rect x="' + lx + '" y="' + (y - 5) + '" width="10" height="10" rx="2" style="fill:' + p.c + '"/><text class="t-name" x="' + (lx + 18) + '" y="' + (y + 4) + '">' + esc(p.name) + '</text>';
-    s += '<text class="v" x="' + (W - 4) + '" y="' + (y + 4) + '" text-anchor="end">' + esc(whole(p.v) + ' · ' + pct(p.v, base)) + '</text>';
-  });
-  host.innerHTML = s + '</svg><div class="tip" hidden></div>';
-  wireTips(host, '.bar-hit', i => tipRows(parts[i].name, [['Amount', money(parts[i].v)], ['Share of income', pct(parts[i].v, base)]]));
-}
-
-function drawMonthBars(host) {
-  const rows = keys().map(k => { const t = totals(state.months[k]); return { k, v: t.left, t, income: Number(state.months[k].income) || 0 }; });
-  const W = Math.max(280, host.clientWidth || 600), H = 230, ml = 50, mr = 6, mt = 10, mb = 24, iw = W - ml - mr, ih = H - mt - mb;
-  const lo = Math.min(0, ...rows.map(r => r.v)), hi = Math.max(0, ...rows.map(r => r.v));
-  const step = niceStep(Math.max(1, hi - lo), 4), top = Math.ceil(hi / step) * step, bot = Math.floor(lo / step) * step;
-  const y = v => mt + (top - v) / ((top - bot) || 1) * ih, N = rows.length, bw = iw / N, ye = yearEvery(N, iw);
-  const sm = v => (v < 0 ? '−' : '') + shortMoney(Math.abs(v));
-  let s = svgOpen(W, H);
-  for (let v = bot; v <= top + 0.5; v += step) s += '<line class="grid" x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (ml - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + sm(v) + '</text>';
-  rows.forEach((r, i) => { if (showYear(r.k, ye)) s += '<text x="' + (ml + i * bw) + '" y="' + (H - 6) + '">' + r.k.slice(0, 4) + '</text>'; });
-  const ti = rows.findIndex(r => r.k === calNow());
-  if (ti >= 0) s += '<line class="today" x1="' + (ml + (ti + .5) * bw) + '" x2="' + (ml + (ti + .5) * bw) + '" y1="' + mt + '" y2="' + (H - mb) + '"/>';
-  rows.forEach((r, i) => {
-    const c = r.v < 0 ? OC.over : OC.left, on = r.k === state.current, pad = Math.min(bw * 0.2, 3);
-    const y0 = y(Math.max(0, r.v)), h = Math.max(1, Math.abs(y(r.v) - y(0)));
-    s += '<rect x="' + (ml + i * bw + pad / 2) + '" y="' + y0 + '" width="' + Math.max(1, bw - pad) + '" height="' + h + '" rx="' + Math.min(2, bw / 3) + '" style="fill:' + c + ';opacity:' + (on ? 1 : .38) + (on ? ';' + glow(c, 6) : '') + '" pointer-events="none"/>';
-  });
-  s += '<line class="axis" x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(0) + '" y2="' + y(0) + '"/>';
-  rows.forEach((r, i) => { s += '<rect class="bar-hit" data-i="' + i + '" x="' + (ml + i * bw) + '" y="' + mt + '" width="' + bw + '" height="' + ih + '"/>'; });
-  host.innerHTML = s + '</svg><div class="tip" hidden></div>';
-  wireTips(host, '.bar-hit', i => { const r = rows[i]; return tipRows(labelOf(r.k), [[r.v < 0 ? 'Over budget' : 'Left over', money(r.v)], ['Income', money(r.income)], ['Bills', money(r.t.bills)], ['Spending', money(r.t.spend)]]); },
-    i => setMonth(rows[i].k));
-}
-
-// Total owed at the start of each month, split into interest-charging and interest-free, on the current plan
-function projectionSeries() {
-  const plans = Object.values(state.debts).map(scheduleOf);
-  const anyOpen = plans.some(p => p.open);
-  const lastEnd = plans.reduce((a, p) => (p.end && p.end > a ? p.end : a), START);
-  const endKey = nextKey(lastEnd), pts = [];
-  for (let k = START; k <= endKey; k = nextKey(k)) {
-    let int = 0, free = 0;
-    for (const p of plans) {
-      const prev = prevKey(k), o = ovr(p.d, p.first);
-      const b = k <= p.first ? (o !== null ? o : Number(p.d.balance) || 0) : (prev in p.after ? p.after[prev] : (p.open ? (p.after[p.end] || 0) : 0));
-      if (p.free) free += b; else int += b;
-    }
-    pts.push({ k, int, free, v: int + free });
-  }
-  return { pts, lastEnd, anyOpen, plans };
-}
-function drawProjection(host, series) {
-  const pts = series.pts, N = Math.max(1, pts.length - 1);
-  const W = Math.max(280, host.clientWidth || 600), H = 250, ml = 52, mr = 10, mt = 14, mb = 24, iw = W - ml - mr, ih = H - mt - mb;
-  const maxV = Math.max(1, ...pts.map(p => p.v)), step = niceStep(maxV, 4), top = Math.ceil(maxV / step) * step;
-  const x = i => ml + i / N * iw, y = v => mt + ih - v / top * ih, ye = yearEvery(N, iw);
-  let s = svgOpen(W, H) + '<defs>' + [['pgInt', 'var(--rose)'], ['pgFree', 'var(--violet)']].map(([id, c]) =>
-    '<linearGradient id="' + id + '" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style="stop-color:' + c + ';stop-opacity:.5"/><stop offset=".6" style="stop-color:' + c + ';stop-opacity:.18"/><stop offset="1" style="stop-color:' + c + ';stop-opacity:.04"/></linearGradient>').join('') + '</defs>';
-  for (let v = 0; v <= top + 0.5; v += step) s += '<line class="grid" x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (ml - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + shortMoney(v) + '</text>';
-  pts.forEach((p, i) => { if (showYear(p.k, ye)) s += '<text x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle">' + p.k.slice(0, 4) + '</text>'; });
-  const line = f => pts.map((p, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(f(p)).toFixed(1)).join(' ');
-  const band = (lo, hi) => line(hi) + ' ' + pts.slice().reverse().map((p, j) => 'L' + x(N - j).toFixed(1) + ' ' + y(lo(p)).toFixed(1)).join(' ') + ' Z';
-  s += '<path d="' + band(() => 0, p => p.int) + '" style="fill:url(#pgInt)"/><path d="' + band(p => p.int, p => p.v) + '" style="fill:url(#pgFree)"/>';
-  s += '<path d="' + line(p => p.int) + '" style="fill:none;stroke:var(--rose);stroke-width:2;stroke-linejoin:round;' + glow('var(--rose)', 4) + '"/>';
-  s += '<path d="' + line(p => p.v) + '" style="fill:none;stroke:var(--violet);stroke-width:2;stroke-linejoin:round;' + glow('var(--violet)', 4) + '"/>';
-  s += '<line class="axis" x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(0) + '" y2="' + y(0) + '"/>';
-  const ti = monthsBetween(START, calNow());
-  if (ti >= 0 && ti <= N) s += '<line class="today" x1="' + x(ti) + '" x2="' + x(ti) + '" y1="' + mt + '" y2="' + y(0) + '"/><text class="today-t" x="' + (x(ti) + 5) + '" y="' + (mt + 10) + '">Now</text>';
-  if (!series.anyOpen) s += '<text class="v" x="' + x(N) + '" y="' + (y(0) - 10) + '" text-anchor="end">Debt-free ' + esc(MONTHS[+series.lastEnd.slice(5) - 1] + ' ’' + series.lastEnd.slice(2, 4)) + '</text>';
-  s += '<line class="cross" id="ovpx" x1="0" x2="0" y1="' + mt + '" y2="' + y(0) + '" visibility="hidden"/><circle id="ovpd" r="4" style="fill:var(--fg)" visibility="hidden"/>';
-  s += '<rect id="ovphit" class="hit" x="' + ml + '" y="' + mt + '" width="' + iw + '" height="' + ih + '" fill="transparent"/></svg><div class="tip" hidden></div>';
-  host.innerHTML = s;
-  const tip = host.querySelector('.tip'), cx = $('ovpx'), cd = $('ovpd'), hit = $('ovphit');
-  const move = e => {
-    const r = host.getBoundingClientRect(), sc = W / r.width, px = (e.clientX - r.left) * sc;
-    const i = Math.max(0, Math.min(N, Math.round((px - ml) / iw * N))), p = pts[i];
-    cx.setAttribute('x1', x(i)); cx.setAttribute('x2', x(i)); cx.setAttribute('visibility', 'visible');
-    cd.setAttribute('cx', x(i)); cd.setAttribute('cy', y(p.v)); cd.setAttribute('visibility', 'visible');
-    tip.innerHTML = tipRows(labelOf(p.k), p.v > 0.005 ? [['Total owed', whole(p.v)], ['Charges interest', whole(p.int)], ['Interest-free', whole(p.free)]] : [['Owed', 'Debt-free']]);
-    placeTip(tip, host, x(i) / sc, y(p.v) / sc);
-  };
-  host._out = () => { tip.hidden = true; cx.setAttribute('visibility', 'hidden'); cd.setAttribute('visibility', 'hidden'); };
-  hit.addEventListener('pointermove', move); hit.addEventListener('pointerdown', move);
-  hit.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') host._out(); });
-}
-
-function drawPaySplit(host, rows) {
-  if (!rows.length) { host.innerHTML = '<p class="ov-note">No interest-charging debt left this month.</p>'; host._out = null; return; }
-  const W = Math.max(280, host.clientWidth || 420), rh = 28, H = rows.length * rh + 2;
-  const maxCh = Math.max(8, Math.floor(W * 0.32 / 7.2));
-  const names = rows.map(r => r.d.name.length > maxCh ? r.d.name.slice(0, maxCh - 1) + '…' : r.d.name);
-  const lw = Math.min(W * 0.34, Math.max(...names.map(n => n.length)) * 7.2 + 14), vw = 112;
-  const max = Math.max(1, ...rows.map(r => r.pay)), x = v => lw + v / max * (W - lw - vw);
-  let s = svgOpen(W, H);
-  rows.forEach((r, i) => {
-    const y = i * rh, share = r.pay ? Math.min(1, r.int / r.pay) : 1;
-    s += '<rect class="bar-hit row-hit" data-i="' + i + '" x="0" y="' + y + '" width="' + W + '" height="' + rh + '" rx="4"/>';
-    s += '<text class="t-name" x="' + (lw - 8) + '" y="' + (y + rh / 2 + 4) + '" text-anchor="end" pointer-events="none">' + esc(names[i]) + '</text>';
-    s += '<rect x="' + lw + '" y="' + (y + 8) + '" width="' + Math.max(1, x(r.int) - lw) + '" height="' + (rh - 16) + '" rx="2" style="fill:var(--rose)" pointer-events="none"/>';
-    s += '<rect x="' + x(r.int) + '" y="' + (y + 8) + '" width="' + Math.max(0, x(r.int + r.down) - x(r.int)) + '" height="' + (rh - 16) + '" rx="2" style="fill:var(--lime)" pointer-events="none"/>';
-    s += '<text class="v" x="' + (x(r.pay) + 6) + '" y="' + (y + rh / 2 + 4) + '" pointer-events="none"' + (share > .6 ? ' style="fill:var(--rose)"' : '') + '>' + pct(r.int, r.pay) + ' interest</text>';
-  });
-  host.innerHTML = s + '</svg><div class="tip" hidden></div>';
-  wireTips(host, '.bar-hit', i => { const r = rows[i]; return tipRows(r.d.name, [['Monthly payment', money(r.pay)], ['Interest', money(r.int)], ['Paying it down', money(r.down)], ['Rate', r.d.rate + '%']]); });
-}
-
-function renderOverview() {
-  const key = state.current, m = cur(), t = totals(m), lab = labelOf(key);
-  $('title').textContent = 'Money overview';
-  ['ovMonth', 'ovMonth2', 'ovMonth3'].forEach(id => $(id).textContent = lab);
-  $('oIncome').textContent = money(m.income);
-  $('oBills').textContent = money(t.bills);
-  $('oSpend').textContent = money(t.spend);
-  $('oLeft').textContent = money(t.left);
-  $('oLeftLabel').textContent = t.left < 0 ? 'Over budget' : 'Left over';
-  $('oLeftTile').classList.toggle('bad', t.left < 0);
-  $('oTodo').textContent = money(t.todo);
-
-  // Debts as shown on the Debts tab for this month
-  const ds = Object.values(state.debts).map(d => ({ d, bal: shownBal(d, key), r: (Number(d.rate) || 0) / 1200 }))
-    .filter(x => x.bal > 0.005 && !endedBefore(x.d, key));
-  const total = ds.reduce((s, x) => s + x.bal, 0);
-  const intDebt = ds.filter(x => x.r > 0).reduce((s, x) => s + x.bal, 0);
-  const intMonth = ds.reduce((s, x) => s + x.bal * x.r, 0);
-  const payLater = ds.filter(x => !x.d.link && !linkedItem(x.d, key)).reduce((s, x) => s + regularIn(x.d, key), 0);
-  const a = state.assets, have = (Number(a.savings) || 0) + (Number(a.investments) || 0) + (Number(a.kiwisaver) || 0), net = have - total;
-  $('oOwed').textContent = whole(total);
-  $('oOwedNote').textContent = key === calNow() ? 'Now, counting ticked payments' : key < calNow() ? 'In ' + lab : 'Projected for ' + lab;
-  $('oIntDebt').textContent = whole(intDebt);
-  $('oIntMonth').textContent = money(round2(intMonth));
-  $('oPayLater').textContent = money(round2(payLater));
-  $('oNet').textContent = net < 0 ? '−' + whole(-net) : (net > 0 ? '+' : '') + whole(net);
-  $('oNetTile').classList.toggle('bad', net < 0);
-  $('oNetTile').classList.toggle('a-lime', net > 0);
-  $('oHave').textContent = whole(have);
-  for (const [id, k] of [['oSavings', 'savings'], ['oInvest', 'investments'], ['oKiwi', 'kiwisaver']]) {
-    const el = $(id); if (document.activeElement !== el) el.value = money(a[k]); el.readOnly = !state.canEdit;
-  }
-  $('oHaveNote').textContent = state.canEdit ? 'Tap an amount to change it · counts toward net position' : 'Counts toward net position';
-
-  const series = projectionSeries();
-  const n = ds.length;
-  $('ovLede').innerHTML = '<b>' + esc(lab) + '</b> ' + (t.left < 0 ? 'goes <b>' + esc(money(-t.left)) + '</b> over budget' : 'leaves <b>' + esc(money(t.left)) + '</b>') +
-    ' after bills and spending. You owe <b>' + esc(whole(total)) + '</b> across <b>' + n + '</b> ' + (n === 1 ? 'debt' : 'debts') +
-    ', and about <b>' + esc(money(round2(intMonth))) + '</b> of interest is added to them each month.';
-  $('ovDebtNote').innerHTML = series.anyOpen ? 'Some debts don’t have a big enough payment set to clear them yet.'
-    : 'On your current plan you’re debt-free in <b>' + esc(labelOf(series.lastEnd)) + '</b>, ' + esc(durationText(monthsBetween(calNow(), series.lastEnd))) + ' from now.';
-
-  drawDonut($('ovDonut'), t, Number(m.income) || 0);
-  const items = m.items.filter(i => Number(i.amount) > 0 && !(i.paid && debtForItem(i))).slice().sort((p, q) => q.amount - p.amount);
-  hbars($('ovItems'), items, { label: i => i.name || 'Item', value: i => Number(i.amount) || 0, fmt: whole, empty: 'No bills or spending this month.',
-    color: i => i.section === 'bills' ? OC.bills : OC.spend,
-    tip: i => [['Amount', money(i.amount)], ['Type', i.section === 'bills' ? 'Bill' : 'Spending'], ['Ticked off', i.paid ? 'Yes' : 'Not yet']] });
-  drawMonthBars($('ovMonths'));
-  drawProjection($('ovProj'), series);
-  const split = ds.filter(x => x.r > 0).map(x => {
-    const pay = regularIn(x.d, key), sb = startBal(x.d, key), int = Math.min(round2(sb * x.r), pay);
-    return { d: x.d, pay, int, down: Math.max(0, round2(pay - int)) };
-  }).filter(r => r.pay > 0).sort((p, q) => q.pay - p.pay);
-  drawPaySplit($('ovPaySplit'), split);
-  hbars($('ovOwe'), ds.slice().sort((p, q) => q.bal - p.bal), { label: x => x.d.name, value: x => x.bal, fmt: whole, empty: 'Nothing owing this month.',
-    color: x => x.r > 0 ? OC.int : OC.free,
-    tip: x => [['Balance', money(x.bal)], ['Rate', x.r > 0 ? x.d.rate + '%' : 'Interest-free'], ['Per month', money(regularIn(x.d, key))]] });
-}
-$('ovToTimeline').onclick = () => setView('timeline');
-
 /* ---------- theme ---------- */
 // Auto follows the device (or the theme chosen in Claude); Light and Dark override it on this device
 const hostTheme = document.documentElement.getAttribute('data-theme');
@@ -1995,7 +1687,7 @@ applyTheme(state.theme);
 $('themeBtn').onclick = () => {
   state.theme = state.theme === 'auto' ? 'light' : state.theme === 'light' ? 'dark' : 'auto';
   store('mm-theme', state.theme); applyTheme(state.theme);
-  if (['timeline', 'payoff', 'overview'].includes(state.view)) renderAll();
+  if (['timeline', 'payoff'].includes(state.view)) renderAll();
 };
 
 /* ---------- folding sections ---------- */
@@ -2034,7 +1726,6 @@ function renderAll() {
   $('status').hidden = true;
   document.body.dataset.view = state.view;
   document.getElementById('app').classList.toggle('ro', !state.canEdit);
-  $('overviewView').hidden = state.view !== 'overview';
   $('budgetView').hidden = state.view !== 'budget';
   $('debtsView').hidden = state.view !== 'debts';
   $('timelineView').hidden = state.view !== 'timeline';
@@ -2043,7 +1734,7 @@ function renderAll() {
   $('debtForm').hidden = !state.canEdit;
   document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.view === state.view ? 'true' : 'false'));
   renderMonthPicker();
-  if (state.view === 'overview') renderOverview(); else if (state.view === 'budget') renderBudget(); else if (state.view === 'debts') renderDebts(); else if (state.view === 'payoff') renderPayoff(); else renderTimeline();
+  if (state.view === 'budget') renderBudget(); else if (state.view === 'debts') renderDebts(); else if (state.view === 'payoff') renderPayoff(); else renderTimeline();
   applyCollapse();
   fitBig();
 }
@@ -2062,7 +1753,7 @@ document.querySelectorAll('.achip').forEach(c => c.onclick = () => { state.strat
 document.querySelectorAll('.ashare').forEach(c => c.onclick = () => { state.share = Number(c.dataset.p); store('mm-share', c.dataset.p); renderAll(); });
 state.strategy = load('mm-strategy') === 'snowball' ? 'snowball' : 'avalanche';
 state.share = [1, 0.75, 0.5].includes(Number(load('mm-share'))) ? Number(load('mm-share')) : 1;
-{ let w = innerWidth, t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => { if (innerWidth === w) return; w = innerWidth; if (['timeline', 'payoff', 'overview'].includes(state.view)) renderAll(); else fitBig(); }, 150); }); }
+{ let w = innerWidth, t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => { if (innerWidth === w) return; w = innerWidth; if (['timeline', 'payoff'].includes(state.view)) renderAll(); else fitBig(); }, 150); }); }
 if (document.fonts) document.fonts.ready.then(fitBig);
 // A tap outside a chart closes its tooltip (touch screens have no hover to end it)
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.chart')) document.querySelectorAll('.chart').forEach(h => h._out && h._out()); });
@@ -2073,11 +1764,13 @@ $('income').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
 $('income').onchange = e => {
   const n = parseAmt(e.target.value);
   if (n === null) { toast('Type a number, like 5000'); return; }
-  cur().income = n; renderAll(); saveMonth(state.current, { income: n }, 'Income updated');
+  // Applies to this month and every month after it; earlier months keep their income
+  const ks = monthsFrom(state.current);
+  saveMonths(Object.fromEntries(ks.map(k => [k, { income: n }])),
+    'Income updated for ' + labelOf(state.current) + (ks.length > 1 ? ' onwards' : ''));
 };
 
-// The same three amounts can be edited on the Debts tab and on the Overview; both save to one place
-for (const [id, k] of [['aSavings', 'savings'], ['aInvest', 'investments'], ['aKiwi', 'kiwisaver'], ['oSavings', 'savings'], ['oInvest', 'investments'], ['oKiwi', 'kiwisaver']]) {
+for (const [id, k] of [['aSavings', 'savings'], ['aInvest', 'investments'], ['aKiwi', 'kiwisaver']]) {
   const el = $(id);
   el.onfocus = () => { el.value = state.assets[k]; el.select(); };
   el.onblur = () => { el.value = money(state.assets[k]); };
@@ -2187,7 +1880,7 @@ function pickDefault() {
   if (state.months[now]) return now;
   return now < ks[0] ? ks[0] : ks[ks.length - 1];
 }
-{ const views = ['overview', 'budget', 'debts', 'timeline', 'payoff'], h = (location.hash || '').slice(1), v = views.includes(h) ? h : load('mm-view'); if (views.includes(v)) state.view = v; document.body.dataset.view = state.view; }
+{ const views = ['budget', 'debts', 'timeline', 'payoff'], h = (location.hash || '').slice(1), v = views.includes(h) ? h : load('mm-view'); if (views.includes(v)) state.view = v; document.body.dataset.view = state.view; }
 state.payoffBase = payoffSeen();
 document.addEventListener('visibilitychange', () => { if (document.hidden && state.view === 'payoff') rememberPayoff(); });
 
