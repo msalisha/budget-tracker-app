@@ -729,18 +729,17 @@ async function saveDebt(d, okMsg) {
 }
 
 /* ---------- budget ---------- */
-// Ticked bills that repay a debt on the Debts tab
-function debtPaidIn(m) { return m.items.reduce((s, it) => s + (it.paid && debtForItem(it) ? Number(it.amount) || 0 : 0), 0); }
+// Every ticked line, bill or spending, drops out of the totals: you lower Income yourself once it's paid.
+// So Bills, Spending and Left over always show what is still to come this month.
 function totals(m) {
   let bills = 0, spend = 0, paid = 0;
   for (const it of m.items) {
     const a = Number(it.amount) || 0;
+    if (it.paid) { paid += a; continue; }
     if (it.section === 'bills') bills += a; else spend += a;
-    if (it.paid) paid += a;
   }
-  const out = bills + spend, toDebts = debtPaidIn(m), inc = Number(m.income) || 0;
-  // Ticked debt repayments drop out of the budget (you lower Income yourself once they're paid)
-  return { bills: bills - toDebts, spend, out: out - toDebts, paid: paid - toDebts, todo: out - paid, left: inc - (out - toDebts) };
+  const out = bills + spend, inc = Number(m.income) || 0;
+  return { bills, spend, out, paid, todo: out, left: inc - out };
 }
 
 const GRIP = '<svg viewBox="0 0 10 16" fill="currentColor" aria-hidden="true"><circle cx="2.5" cy="3" r="1.5"/><circle cx="7.5" cy="3" r="1.5"/><circle cx="2.5" cy="8" r="1.5"/><circle cx="7.5" cy="8" r="1.5"/><circle cx="2.5" cy="13" r="1.5"/><circle cx="7.5" cy="13" r="1.5"/></svg>';
