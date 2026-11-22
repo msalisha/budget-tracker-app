@@ -198,7 +198,23 @@ body.is-dragging { user-select: none; -webkit-user-select: none; }
 
 /* Debt rows */
 li.debt { padding: 14px 12px; border-top: 1px solid var(--line); display: grid; gap: 10px; }
-/* Static debts: a name row, then four figures you edit yourself */
+/* Static debts: one compact line each; tapping it opens the four figures to edit */
+#lDebts li.debt { padding: 0; gap: 0; }
+#lDebts li.debt.open { padding: 12px; gap: 10px; background: var(--hover); }
+.d-sum { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 1px; align-items: baseline; width: 100%;
+  background: transparent; border: 0; color: inherit; font: inherit; text-align: left; padding: 10px 12px; cursor: pointer; border-radius: var(--r-sm); }
+button.d-sum:hover { background: var(--hover); }
+.d-sum-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d-sum-owed { font-weight: 700; text-align: right; }
+.d-sum-meta { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+li.debt.cleared .d-sum-name, li.debt.cleared .d-sum-owed { color: var(--muted); }
+.d-del { justify-self: start; color: var(--rose); margin: 0; }
+.d-del.confirm { font-weight: 700; }
+.add-debt-btn { width: 100%; min-height: 44px; border: 1px dashed var(--line-hi); border-radius: var(--r-md); background: transparent; color: var(--brand-text); font: 600 15px var(--sans); cursor: pointer; }
+.add-debt-btn:hover { background: var(--hover); }
+form.add.debtadd[hidden], .add-debt-btn[hidden] { display: none; }
+form.add.debtadd .form-row { grid-column: 1 / -1; display: flex; gap: 8px; justify-content: flex-end; }
+form.add.debtadd .form-row .btn { min-height: 42px; }
 .d-head { display: flex; gap: 8px; align-items: center; }
 .d-head .name { flex: 1; min-width: 0; font-weight: 600; }
 .d-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
@@ -539,13 +555,14 @@ body { min-height: 100vh; min-height: 100dvh; -webkit-tap-highlight-color: trans
         <div class="sec-body" id="debtsBody" data-part="debts">
         <ul class="items" id="lDebts"></ul>
 
-      <form class="add debtadd" id="debtForm" autocomplete="off">
+      <button type="button" class="add-debt-btn" id="addDebtBtn" aria-expanded="false" aria-controls="debtForm">+ Add a debt</button>
+      <form class="add debtadd" id="debtForm" autocomplete="off" hidden>
         <input id="ndName" placeholder="New debt, e.g. laptop" aria-label="Debt name" required>
         <input id="ndBal" class="num" placeholder="$ owed" inputmode="decimal" aria-label="Amount owed" required>
         <input id="ndMonthly" class="num" placeholder="$ per month" inputmode="decimal" aria-label="Monthly payment">
         <input id="ndRate" class="num" placeholder="Interest %" inputmode="decimal" aria-label="Interest rate percent">
         <label class="month-field"><span>Last payment</span><input id="ndLast" type="month" aria-label="Last payment month"></label>
-        <button class="btn" type="submit">Add debt</button>
+        <div class="form-row"><button class="btn ghost" type="button" id="debtCancel">Cancel</button><button class="btn" type="submit">Add debt</button></div>
       </form>
         </div>
       </section>
@@ -672,7 +689,7 @@ const $ = id => document.getElementById(id);
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const START = '2026-10'; // balances in the spreadsheet are as at 1 Oct 2026
 const state = { months: {}, debts: {}, assets: { savings: 0, investments: 0, kiwisaver: 0 }, current: null,
-  showPaid: {}, view: 'budget', canEdit: false, col: null, dcol: null, adoc: null };
+  showPaid: {}, view: 'budget', openDebt: null, addingDebt: false, canEdit: false, col: null, dcol: null, adoc: null };
 const CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 
 function money(n) {
@@ -907,30 +924,43 @@ function debtField(d, key, label, kind) {
   };
   l.append(sp, i); return l;
 }
+// Compact line: name and amount owed, with payment, last month and rate underneath. Tap it to edit.
 function debtRow(d) {
-  const li = document.createElement('li'); li.className = 'debt' + (owedOf(d) <= 0 ? ' cleared' : '');
+  const li = document.createElement('li'); li.className = 'debt' + (owedOf(d) <= 0 ? ' cleared' : '') + (state.openDebt === d.id ? ' open' : '');
+  if (state.openDebt !== d.id || !state.canEdit) {
+    const btn = document.createElement(state.canEdit ? 'button' : 'div'); btn.className = 'd-sum';
+    if (state.canEdit) { btn.type = 'button'; btn.onclick = () => { state.openDebt = d.id; state.addingDebt = false; renderAll(); }; }
+    const nm = document.createElement('span'); nm.className = 'd-sum-name'; nm.textContent = d.name || 'Debt';
+    const ow = document.createElement('span'); ow.className = 'd-sum-owed num'; ow.textContent = owedOf(d) > 0 ? money(owedOf(d)) : 'Paid off';
+    const meta = document.createElement('span'); meta.className = 'd-sum-meta num';
+    meta.textContent = [Number(d.monthly) ? money(d.monthly) + '/mo' : null, d.lastPayment ? 'last ' + labelOf(d.lastPayment) : null,
+      (Number(d.rate) || 0) + '%'].filter(Boolean).join(' · ');
+    btn.append(nm, ow, meta);
+    if (state.canEdit) btn.setAttribute('aria-label', (d.name || 'Debt') + ', ' + ow.textContent + ' owed, ' + meta.textContent + '. Tap to edit.');
+    li.append(btn); return li;
+  }
   const head = document.createElement('div'); head.className = 'd-head';
   const name = document.createElement('input'); name.className = 'name'; name.value = d.name || ''; name.id = 'dn-' + d.id;
-  name.setAttribute('aria-label', 'Debt name'); name.readOnly = !state.canEdit;
+  name.setAttribute('aria-label', 'Debt name');
   name.onkeydown = e => { if (e.key === 'Enter') name.blur(); };
   name.onchange = () => { const v = name.value.trim(); if (v) saveDebt({ ...d, name: v }); else name.value = d.name || ''; };
-  const del = document.createElement('button'); del.type = 'button'; del.className = 'del'; del.textContent = '×';
-  del.setAttribute('aria-label', 'Delete ' + (d.name || 'debt'));
-  del.onclick = async () => {
-    if (!del.classList.contains('confirm')) {
-      del.classList.add('confirm'); del.textContent = 'Delete?';
-      setTimeout(() => { if (del.isConnected) { del.classList.remove('confirm'); del.textContent = '×'; } }, 3000);
-      return;
-    }
-    delete state.debts[d.id]; renderAll();
-    try { await state.dcol.doc(d.id).delete(); toast('Deleted ' + d.name); } catch (e) { toast(failMsg(e)); }
-  };
-  if (!state.canEdit) del.hidden = true;
-  head.append(name, del);
+  const done = document.createElement('button'); done.type = 'button'; done.className = 'linkbtn'; done.textContent = 'Done';
+  done.onclick = () => { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); state.openDebt = null; renderAll(); };
+  head.append(name, done);
   const grid = document.createElement('div'); grid.className = 'd-fields';
   grid.append(debtField(d, 'owed', 'Owed', 'money'), debtField(d, 'monthly', 'Per month', 'money'),
     debtField(d, 'lastPayment', 'Last payment', 'month'), debtField(d, 'rate', 'Interest', 'rate'));
-  li.append(head, grid);
+  const del = document.createElement('button'); del.type = 'button'; del.className = 'linkbtn d-del'; del.textContent = 'Delete debt';
+  del.onclick = async () => {
+    if (!del.classList.contains('confirm')) {
+      del.classList.add('confirm'); del.textContent = 'Tap again to delete ' + (d.name || 'this debt');
+      setTimeout(() => { if (del.isConnected) { del.classList.remove('confirm'); del.textContent = 'Delete debt'; } }, 3000);
+      return;
+    }
+    delete state.debts[d.id]; state.openDebt = null; renderAll();
+    try { await state.dcol.doc(d.id).delete(); toast('Deleted ' + d.name); } catch (e) { toast(failMsg(e)); }
+  };
+  li.append(head, grid, del);
   return li;
 }
 function renderDebts() {
@@ -1066,7 +1096,8 @@ function renderAll() {
   $('budgetView').hidden = state.view !== 'budget';
   $('debtsView').hidden = state.view !== 'debts';
   $('monthnav').hidden = state.view === 'debts';
-  $('debtForm').hidden = !state.canEdit;
+  $('debtForm').hidden = !state.canEdit || !state.addingDebt;
+  $('addDebtBtn').hidden = !state.canEdit || !!state.addingDebt;
   document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.view === state.view ? 'true' : 'false'));
   renderMonthPicker();
   if (state.view === 'debts') renderDebts(); else renderBudget();
@@ -1109,6 +1140,8 @@ $('addForm').onsubmit = e => {
   $('addName').value = ''; $('addAmt').value = ''; $('addName').focus();
 };
 
+$('addDebtBtn').onclick = () => { state.addingDebt = true; state.openDebt = null; renderAll(); $('ndName').focus(); };
+$('debtCancel').onclick = () => { state.addingDebt = false; renderAll(); };
 $('debtForm').onsubmit = e => {
   e.preventDefault();
   const name = $('ndName').value.trim(), bal = parseAmt($('ndBal').value);
@@ -1119,6 +1152,7 @@ $('debtForm').onsubmit = e => {
   const order = Math.max(0, ...Object.values(state.debts).map(d => d.order || 0)) + 1;
   saveDebt({ id: 'd' + Date.now().toString(36), order, name, owed: bal, monthly: mo, rate: rt, lastPayment: $('ndLast').value || null }, 'Added ' + name);
   ['ndName', 'ndBal', 'ndMonthly', 'ndRate', 'ndLast'].forEach(i => $(i).value = '');
+  state.addingDebt = false; renderAll();
 };
 
 $('untickAll').onclick = () => {
