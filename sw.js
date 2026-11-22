@@ -1,10 +1,11 @@
 /* Keeps Budget Tracker working offline. Bump VERSION to roll out a new release. */
-const VERSION = 'v6';
+const VERSION = 'v7';
 const SHELL = 'budget-shell-' + VERSION, FONTS = 'budget-fonts';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(SHELL).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
+  // cache: 'reload' skips the browser's own cache, so a new release never saves an old page
+  e.waitUntil(caches.open(SHELL).then(c => c.addAll(FILES.map(f => new Request(f, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('budget-shell-') && k !== SHELL).map(k => caches.delete(k))))
@@ -13,9 +14,13 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request, url = new URL(req.url);
   if (req.method !== 'GET') return;
-  // The page itself: newest copy when online, the saved copy when offline
+  // The page itself: newest copy when online (always checked with GitHub, never the browser's
+  // 10-minute cache), the saved copy when offline
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(res => { const copy = res.clone(); caches.open(SHELL).then(c => c.put('./index.html', copy)); return res; })
+    e.respondWith(fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(res => {
+      if (res.redirected) return fetch(req);   // e.g. an address without the final slash: let the browser follow it
+      if (res.ok) { const copy = res.clone(); caches.open(SHELL).then(c => c.put('./index.html', copy)); }
+      return res; })
       .catch(() => caches.match('./index.html', { ignoreSearch: true })));
     return;
   }

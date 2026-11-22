@@ -1339,7 +1339,24 @@ function pickDefault() {
   };
 
   LocalDB.ready().then(refreshLast);
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  // Offline support, and updates: check for a new version whenever the app comes back to the front,
+  // and switch to it as soon as it's ready (waiting until you're not typing in a box)
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+      const check = () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); };
+      document.addEventListener('visibilitychange', check);
+      setInterval(check, 30 * 60 * 1000);
+    }).catch(() => {});
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloading) return;   // first install: nothing to refresh
+      const go = () => { if (reloading) return; const a = document.activeElement;
+        if (a && a.matches && a.matches('input, select, textarea')) { a.addEventListener('blur', () => setTimeout(go, 300), { once: true }); return; }
+        reloading = true; location.reload(); };
+      go();
+    });
+  }
 })();
 </script>
 </body>
