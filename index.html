@@ -198,6 +198,18 @@ body.is-dragging { user-select: none; -webkit-user-select: none; }
 
 /* Debt rows */
 li.debt { padding: 14px 12px; border-top: 1px solid var(--line); display: grid; gap: 10px; }
+/* Static debts: a name row, then four figures you edit yourself */
+.d-head { display: flex; gap: 8px; align-items: center; }
+.d-head .name { flex: 1; min-width: 0; font-weight: 600; }
+.d-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.d-field { background: var(--surface-2); border-radius: var(--r-sm); padding: 8px 10px; display: grid; gap: 2px; min-width: 0; }
+.d-field span { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.d-field input { background: transparent; border: 0; padding: 2px 0; font-weight: 700; font-size: 16px; width: 100%; min-width: 0; color: var(--fg); }
+.d-field input:focus { outline: 2px solid var(--line-hi); outline-offset: 2px; border-radius: 2px; }
+li.debt.cleared .d-field input { color: var(--muted); }
+.d-field input[type="month"] { font-size: 15px; font-weight: 600; -webkit-appearance: none; appearance: none; min-height: 24px; }
+#monthnav[hidden] { display: none; } /* the month bar only applies to the Budget tab */
+@media (max-width: 560px) { .d-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .d-top { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
 .d-name { min-width: 0; }
 .d-name strong { display: block; font-weight: 600; overflow-wrap: anywhere; }
@@ -513,43 +525,23 @@ body { min-height: 100vh; min-height: 100dvh; -webkit-tap-highlight-color: trans
     <div class="view-inner" style="display:grid;gap:24px">
       <div class="hero" id="dHero">
         <div style="display:grid;gap:4px;position:relative;z-index:1">
-          <span class="label" id="dTotalLabel">Total debt now</span>
+          <span class="label">Total owed</span>
           <span class="big num" id="dTotal">$0</span>
-          <span class="sub num" id="dSub"></span>
         </div>
-        <div class="meter" aria-hidden="true"><i id="dMeter" style="width:0"></i></div>
-        <div class="stats" id="debtStats" data-part="debtStats">
-          <div class="stat"><span>Paid off</span><b class="num" id="dPaid"></b></div>
+        <div class="stats">
           <div class="stat"><span>Per month</span><b class="num" id="dMonthly"></b></div>
-          <div class="stat"><span>Debt-free</span><b class="num" id="dFree"></b></div>
-          <div class="stat"><span>Net position</span><b class="num" id="dNet"></b></div>
+          <div class="stat"><span>Final payment</span><b class="num" id="dLast"></b></div>
         </div>
-        <button type="button" class="hero-more" data-sec="debtStats" data-open="Hide breakdown" data-closed="Paid off, per month, debt-free" aria-controls="debtStats">Hide breakdown<i class="chev" aria-hidden="true"></i></button>
       </div>
-
-      <section class="list" aria-labelledby="hAssets">
-        <div class="list-head fold"><h2 id="hAssets"><button type="button" class="sec-toggle" data-sec="assets" aria-controls="assetsBody">What you have<i class="chev" aria-hidden="true"></i></button></h2><span class="tot num" id="sumAssets"></span></div>
-        <div class="assets" id="assetsBody" data-part="assets">
-          <label class="asset"><span>Savings</span><input id="aSavings" class="num" inputmode="decimal"></label>
-          <label class="asset"><span>Investments</span><input id="aInvest" class="num" inputmode="decimal"></label>
-          <label class="asset"><span>KiwiSaver</span><input id="aKiwi" class="num" inputmode="decimal"></label>
-        </div>
-      </section>
 
       <section class="list" aria-labelledby="hDebts">
         <div class="list-head fold"><h2 id="hDebts"><button type="button" class="sec-toggle" data-sec="debts" aria-controls="debtsBody">Debts<i class="chev" aria-hidden="true"></i></button></h2><span class="tot num" id="dRepaid"></span></div>
         <div class="sec-body" id="debtsBody" data-part="debts">
-      <div class="filters" role="group" aria-label="Show debts">
-        <button class="chip dchip" data-df="active" aria-pressed="true">Still owing</button>
-        <button class="chip dchip" data-df="due" aria-pressed="false">Due this month</button>
-        <button class="chip dchip" data-df="all" aria-pressed="false">All</button>
-      </div>
-        <div class="legend" aria-label="Key"><span class="tag interest">Charges interest</span><span class="tag free">Interest-free</span></div>
         <ul class="items" id="lDebts"></ul>
 
       <form class="add debtadd" id="debtForm" autocomplete="off">
         <input id="ndName" placeholder="New debt, e.g. laptop" aria-label="Debt name" required>
-        <input id="ndBal" class="num" placeholder="$ owed now" inputmode="decimal" aria-label="Amount owed now" required>
+        <input id="ndBal" class="num" placeholder="$ owed" inputmode="decimal" aria-label="Amount owed" required>
         <input id="ndMonthly" class="num" placeholder="$ per month" inputmode="decimal" aria-label="Monthly payment">
         <input id="ndRate" class="num" placeholder="Interest %" inputmode="decimal" aria-label="Interest rate percent">
         <label class="month-field"><span>Last payment</span><input id="ndLast" type="month" aria-label="Last payment month"></label>
@@ -559,7 +551,7 @@ body { min-height: 100vh; min-height: 100dvh; -webkit-tap-highlight-color: trans
       </section>
 
       <div class="foot">
-        <span>Tick a debt once you’ve paid it for the month shown. Repayments that are also budget bills tick on both pages. Balances include interest and are estimates.</span>
+        <span>These figures are yours to keep up to date, for example from your statements each month. Nothing here is calculated, and ticking bills on the Budget tab doesn’t change them.</span>
       </div>
     </div>
   </div>
@@ -680,7 +672,7 @@ const $ = id => document.getElementById(id);
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const START = '2026-10'; // balances in the spreadsheet are as at 1 Oct 2026
 const state = { months: {}, debts: {}, assets: { savings: 0, investments: 0, kiwisaver: 0 }, current: null,
-  showPaid: {}, dfilter: 'active', view: 'budget', canEdit: false, col: null, dcol: null, adoc: null, openEdit: null };
+  showPaid: {}, view: 'budget', canEdit: false, col: null, dcol: null, adoc: null };
 const CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 
 function money(n) {
@@ -795,12 +787,8 @@ function itemRow(it, sortable) {
   tick.setAttribute('aria-pressed', it.paid ? 'true' : 'false');
   tick.setAttribute('aria-label', (it.paid ? 'Mark unpaid: ' : 'Mark paid: ') + (it.name || 'item'));
   tick.onclick = () => {
-    const debt = debtForItem(it), key = state.current;
     saveItems(cur().items.map(x => x.id === it.id ? { ...x, paid: !x.paid } : x));
-    if (debt) { const left = key >= calNow() ? balanceNow(debt) : projectedAt(debt, key);
-      toast(it.paid ? debt.name + ' unticked on Debts · ' + money(left) + ' owing'
-        : debt.name + ' moved to Debts · ' + (left > 0 ? money(left) + ' left to pay' : 'paid off!')); }
-    else if (!it.paid) toast((it.name || 'Item') + ' paid · tap Show at the bottom of the list to undo');
+    if (!it.paid) toast((it.name || 'Item') + ' paid · tap Show at the bottom of the list to undo');
   };
   const name = document.createElement('input');
   name.className = 'name'; name.value = it.name; name.id = 'n-' + state.current + '-' + it.id;
@@ -882,287 +870,134 @@ function renderBudget() {
   $('sSpend').textContent = money(t.spend);
   $('sTodo').textContent = money(t.todo);
   const bills = m.items.filter(i => i.section === 'bills'), spend = m.items.filter(i => i.section !== 'bills');
-  // A ticked debt repayment is shown only on the Debts tab; unticking it there brings it back here
-  const billsShown = bills.filter(i => !(i.paid && debtForItem(i)));
-  renderList($('lBills'), billsShown, 'bills');
+  renderList($('lBills'), bills, 'bills');
   renderList($('lSpend'), spend, 'spending');
   // Each section's bar shows what's left in it, so a folded list still tells you where you stand
   const barText = arr => { const todo = arr.filter(i => !i.paid); return todo.length ? todo.length + ' to pay · ' + money(todo.reduce((t, i) => t + (Number(i.amount) || 0), 0)) : arr.length ? 'All paid' : 'Nothing yet'; };
-  $('sumBills').textContent = barText(billsShown);
+  $('sumBills').textContent = barText(bills);
   $('sumSpend').textContent = barText(spend);
 }
 
 /* ---------- debts ---------- */
-// The debt a budget bill repays, if any (matched by name, as on the Debts tab)
-function debtForItem(it) {
-  if (it.section !== 'bills' || !(Number(it.amount) > 0)) return null;
-  const n = (it.name || '').trim().toLowerCase();
-  return Object.values(state.debts).find(d => (d.link || d.name || '').trim().toLowerCase() === n) || null;
+// The Debts tab is a plain list you keep up to date yourself: amount owed, monthly payment,
+// last payment month and interest rate. Nothing on it is worked out from the Budget tab.
+function sortedDebts() {
+  return Object.values(state.debts).sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0) || (a.name || '').localeCompare(b.name || ''));
 }
-function linkedItem(d, key) {
+const owedOf = d => Number(d.owed) || 0;
+// One editable figure on a debt. Money and rates show formatted, and switch to the plain number while you type.
+function debtField(d, key, label, kind) {
+  const l = document.createElement('label'); l.className = 'd-field';
+  const sp = document.createElement('span'); sp.textContent = label;
+  const i = document.createElement('input'); i.id = 'd' + key + '-' + d.id; i.readOnly = !state.canEdit;
+  i.setAttribute('aria-label', label + ' for ' + (d.name || 'debt'));
+  const raw = d[key];
+  const show = () => kind === 'month' ? (raw || '') : raw === null || raw === undefined || raw === '' ? '' : kind === 'rate' ? (Number(raw) || 0) + '%' : money(raw);
+  if (kind === 'month') i.type = 'month'; else { i.inputMode = 'decimal'; i.classList.add('num'); i.placeholder = kind === 'rate' ? '0%' : '$0'; }
+  i.value = show();
+  if (kind !== 'month') { i.onfocus = () => { i.value = raw ?? ''; i.select(); }; i.onblur = () => { i.value = show(); }; }
+  i.onkeydown = e => { if (e.key === 'Enter') i.blur(); };
+  i.onchange = () => {
+    let v;
+    if (kind === 'month') v = i.value || null;
+    else if (i.value.trim() === '') v = kind === 'rate' ? 0 : null;
+    else { v = parseAmt(i.value); if (v === null) { i.value = show(); toast(kind === 'rate' ? 'Type a rate, like 19.95' : 'Type a number, like 1200'); return; } }
+    if (key === 'owed' && v === null) v = 0;
+    saveDebt({ ...d, [key]: v }, 'Saved ' + (d.name || 'debt'));
+  };
+  l.append(sp, i); return l;
+}
+function debtRow(d) {
+  const li = document.createElement('li'); li.className = 'debt' + (owedOf(d) <= 0 ? ' cleared' : '');
+  const head = document.createElement('div'); head.className = 'd-head';
+  const name = document.createElement('input'); name.className = 'name'; name.value = d.name || ''; name.id = 'dn-' + d.id;
+  name.setAttribute('aria-label', 'Debt name'); name.readOnly = !state.canEdit;
+  name.onkeydown = e => { if (e.key === 'Enter') name.blur(); };
+  name.onchange = () => { const v = name.value.trim(); if (v) saveDebt({ ...d, name: v }); else name.value = d.name || ''; };
+  const del = document.createElement('button'); del.type = 'button'; del.className = 'del'; del.textContent = '×';
+  del.setAttribute('aria-label', 'Delete ' + (d.name || 'debt'));
+  del.onclick = async () => {
+    if (!del.classList.contains('confirm')) {
+      del.classList.add('confirm'); del.textContent = 'Delete?';
+      setTimeout(() => { if (del.isConnected) { del.classList.remove('confirm'); del.textContent = '×'; } }, 3000);
+      return;
+    }
+    delete state.debts[d.id]; renderAll();
+    try { await state.dcol.doc(d.id).delete(); toast('Deleted ' + d.name); } catch (e) { toast(failMsg(e)); }
+  };
+  if (!state.canEdit) del.hidden = true;
+  head.append(name, del);
+  const grid = document.createElement('div'); grid.className = 'd-fields';
+  grid.append(debtField(d, 'owed', 'Owed', 'money'), debtField(d, 'monthly', 'Per month', 'money'),
+    debtField(d, 'lastPayment', 'Last payment', 'month'), debtField(d, 'rate', 'Interest', 'rate'));
+  li.append(head, grid);
+  return li;
+}
+function renderDebts() {
+  $('title').textContent = 'Debts';
+  const ds = sortedDebts(), owing = ds.filter(d => owedOf(d) > 0);
+  const total = ds.reduce((s, d) => s + owedOf(d), 0), monthly = owing.reduce((s, d) => s + (Number(d.monthly) || 0), 0);
+  const last = owing.map(d => d.lastPayment).filter(Boolean).sort().pop();
+  $('dTotal').textContent = money(total);
+  $('dMonthly').textContent = money(monthly);
+  $('dLast').textContent = last ? labelOf(last) : '—';
+  $('dRepaid').innerHTML = '<b>' + esc(money(total)) + '</b> owed · ' + owing.length + (owing.length === 1 ? ' debt' : ' debts');
+  // Keep the cursor where it was when a save redraws the list
+  const focusId = document.activeElement && document.activeElement.closest('#lDebts') ? document.activeElement.id : null;
+  const ul = $('lDebts'); ul.innerHTML = '';
+  if (!ds.length) { const li = document.createElement('li'); li.className = 'empty-row'; li.textContent = 'No debts yet. Add one below.'; ul.appendChild(li); }
+  ds.forEach(d => ul.appendChild(debtRow(d)));
+  if (focusId && $(focusId)) $(focusId).focus();
+}
+
+/* One-time switch from the old calculated debts: each debt keeps the balance and final
+   payment month the old version showed, as its own figures. Runs for any debt without `owed`,
+   including ones in an older backup you import. */
+function oldLinkedItem(d, key) {
   const md = state.months[key]; if (!md) return null;
   const want = (d.link || d.name || '').trim().toLowerCase(); if (!want) return null;
   return md.items.find(i => i.section === 'bills' && (i.name || '').trim().toLowerCase() === want && Number(i.amount) > 0) || null;
 }
-function paymentIn(d, key) {
-  const it = linkedItem(d, key);
-  if (it) return it.paid ? Number(it.amount) || 0 : 0;
-  return Number((d.paid || {})[key]) || 0;
-}
-function lastActivity(d) {
-  let last = START;
-  for (const k of keys()) if (k > last && paymentIn(d, k) > 0) last = k;
-  for (const k of Object.keys(d.paid || {})) if (k > last) last = k;
-  return last;
-}
-// A balance you typed in yourself: what the debt owed at the start of month `m`, before that month's payment
-function ovr(d, m) { const v = (d.overrides || {})[m]; return v === undefined || v === null ? null : Number(v); }
-function lastOverride(d, upTo) { return Object.keys(d.overrides || {}).filter(k => k <= upTo).sort().pop() || null; }
-// Balance after `until` (inclusive). Past months always add interest; current/future months only once a payment is ticked.
-function balanceAt(d, until) {
-  let bal = Number(d.balance) || 0; const r = (Number(d.rate) || 0) / 1200, now = calNow();
+function oldPaymentIn(d, key) { const it = oldLinkedItem(d, key); return it ? (it.paid ? Number(it.amount) || 0 : 0) : Number((d.paid || {})[key]) || 0; }
+function oldBalanceNow(d) {
+  const now = calNow(); let until = now;
+  for (const k of keys()) if (k > until && oldPaymentIn(d, k) > 0) until = k;
+  for (const k of Object.keys(d.paid || {})) if (k > until) until = k;
+  let bal = Number(d.balance) || 0; const r = (Number(d.rate) || 0) / 1200;
   for (let m = d.since || START; m <= until; m = nextKey(m)) {
-    const o = ovr(d, m); if (o !== null) bal = o;
-    const pay = paymentIn(d, m);
+    const o = (d.overrides || {})[m]; if (o !== undefined && o !== null) bal = Number(o);
+    const pay = oldPaymentIn(d, m);
     if (m < now || pay > 0) bal *= 1 + r;
     bal = Math.max(0, bal - pay);
   }
-  return round2(bal);
+  return { bal: round2(bal), from: until };
 }
-function balanceNow(d) { const now = calNow(), la = lastActivity(d); return balanceAt(d, la > now ? la : now); }
-// The balance shown for month `key`. For the current month this counts every payment ticked so far,
-// including one ticked early in a later month's budget (e.g. paid now but listed in next month's bills).
-function shownBal(d, key) { return key === calNow() ? balanceNow(d) : projectedAt(d, key); }
-// Later months whose payment for this debt is already ticked
-function earlyPays(d, key) { return keys().filter(k => k > key && paymentIn(d, k) > 0); }
-// Interest added in month `m` when its payment is ticked
-function interestIn(d, m) { const r = (Number(d.rate) || 0) / 1200, o = ovr(d, m); return r ? round2((o !== null ? o : balanceAt(d, prevKey(m))) * r) : 0; }
-// The starting balance for month `key` that makes the shown balance come out at `want` (it's a straight line, so two probes solve it)
-function overrideFor(d, key, want) {
-  const at = x => shownBal({ ...d, overrides: { ...(d.overrides || {}), [key]: x } }, key);
-  const x1 = want + 100000, f1 = at(x1), g = (at(x1 + 100000) - f1) / 100000;
-  if (!(g > 0)) return want;
-  const x = Math.max(0, x1 + (want - f1) / g), r4 = v => Math.round(v * 10000) / 10000;
-  // Shown balances are rounded to cents, so nudge the answer until it lands exactly on the typed amount
-  for (const c of [0, 0.004, -0.004, 0.008, -0.008]) { const v = r4(Math.max(0, x + c / g)); if (Math.abs(at(v) - want) < 0.005) return v; }
-  return r4(x);
-}
-// The planned payment in month `m` for a debt owing `bal` at the start of it
-function scheduledPay(d, m, bal) {
-  const owed = bal * (1 + (Number(d.rate) || 0) / 1200), it = linkedItem(d, m);
-  let p = 0;
-  if (it) p = Number(it.amount) || 0;
-  else if (Number(d.monthly) > 0) p = Number(d.monthly);
-  else if (d.lastPayment) { const left = monthsBetween(m, d.lastPayment) + 1; p = left > 0 ? bal / left : 0; }
-  return Math.min(p, owed);
-}
-// Projected balance at the start of month `key`: earlier months use what you ticked, or the planned payment if not ticked
-function startBal(d, key) {
-  let bal = Number(d.balance) || 0; const r = (Number(d.rate) || 0) / 1200;
-  for (let m = d.since || START; m < key; m = nextKey(m)) {
-    const o = ovr(d, m); if (o !== null) bal = o;
-    const t = paymentIn(d, m);
-    bal = Math.max(0, bal * (1 + r) - (t > 0 ? t : scheduledPay(d, m, bal)));
-  }
-  const o = ovr(d, key); if (o !== null) bal = o;
-  return bal;
-}
-// Projected balance in month `key`, after whatever is ticked for that month
-function projectedAt(d, key) {
-  let bal = startBal(d, key); const t = paymentIn(d, key);
-  if (t > 0) bal = Math.max(0, bal * (1 + (Number(d.rate) || 0) / 1200) - t);
-  return bal < 0.005 ? 0 : round2(bal);
-}
-// What's due for this debt in month `key`
-function dueIn(d, key) { const b = startBal(d, key); return b < 0.005 ? 0 : round2(scheduledPay(d, key, b)); }
-// The usual monthly repayment: the debt's own monthly amount, ignoring one-off budget amounts
-function regularIn(d, key) {
-  const it = linkedItem(d, key);
-  if (it && Number(d.monthly) > 0 && Number(it.amount) < Number(d.monthly)) return Number(it.amount); // smaller final payment
-  if (Number(d.monthly) > 0) { const b = startBal(d, key); return b < 0.005 ? 0 : Math.min(Number(d.monthly), b * (1 + (Number(d.rate) || 0) / 1200)); }
-  return dueIn(d, key);
-}
-function payoffKey(d) {
-  const bal = balanceNow(d); if (bal <= 0) return 'done';
+function oldFinalMonth(d, bal, from) {
+  if (bal <= 0) return d.lastPayment || null;
   const monthly = Number(d.monthly) || 0, r = (Number(d.rate) || 0) / 1200;
   if (!monthly) return d.lastPayment || null;
-  // Project forward from today, using each month's budget amount where the debt is a budget bill
-  const now = calNow(), la = lastActivity(d); let k = la > now ? la : now, b = bal;
-  if (paymentIn(d, k) > 0) k = nextKey(k);
+  let k = from, b = bal;
+  if (oldPaymentIn(d, k) > 0) k = nextKey(k);
   for (let n = 0; n < 600; n++, k = nextKey(k)) {
-    const it = linkedItem(d, k);
+    const it = oldLinkedItem(d, k);
     b = b * (1 + r) - (it ? Number(it.amount) || 0 : monthly);
     if (b <= 0.005) return k;
   }
-  return 'never';
+  return d.lastPayment || null;
 }
-// True when the debt's final payment falls before month `key`, so it no longer belongs in that month
-function endedBefore(d, key) { const pk = payoffKey(d); return !!pk && pk !== 'done' && pk !== 'never' && pk < key; }
-// Soonest "Clear by" date first; no end date next; paid off last. Ties: smaller balance first.
-function sortedDebts() {
-  const rank = d => { const k = payoffKey(d); return k === 'done' ? '9999-98' : (k === 'never' || !k) ? '9999-97' : k; };
-  return Object.values(state.debts).map(d => ({ d, k: rank(d), b: balanceNow(d) }))
-    .sort((x, y) => x.k.localeCompare(y.k) || x.b - y.b || x.d.name.localeCompare(y.d.name)).map(x => x.d);
-}
-
-function toggleDebt(d) {
-  const key = state.current;
-  const early = key === calNow() && !(paymentIn(d, key) > 0) ? earlyPays(d, key) : [];
-  if (early.length) { const k = early[0], e = linkedItem(d, k);
-    if (e) { saveItems(state.months[k].items.map(x => x.id === e.id ? { ...x, paid: false } : x), d.name + ' unticked in ' + labelOf(k) + ' bills', k); return; } }
-  const it = linkedItem(d, key);
-  if (it) { saveItems(state.months[key].items.map(x => x.id === it.id ? { ...x, paid: !x.paid } : x), null, key); return; }
-  const paid = { ...(d.paid || {}) };
-  if (paid[key]) delete paid[key]; else { const due = dueIn(d, key); if (!due) { toast('Nothing due on this one for ' + labelOf(key)); return; } paid[key] = round2(due); }
-  saveDebt({ ...d, paid });
-}
-
-function debtRow(d) {
-  const key = state.current, bal = shownBal(d, key), start = Number(d.balance) || 0;
-  const paidNow = paymentIn(d, key) > 0, due = dueIn(d, key), pk = payoffKey(d);
-  const early = key === calNow() ? earlyPays(d, key) : [], ticked = paidNow || early.length > 0;
-  const li = document.createElement('li');
-  const free = !(Number(d.rate) > 0);
-  li.className = 'debt' + (bal <= 0 ? ' cleared' : '') + (free ? ' free' : '');
-  const top = document.createElement('div'); top.className = 'd-top';
-  const tick = document.createElement('button');
-  tick.className = 'tick'; tick.type = 'button'; tick.innerHTML = CHECK;
-  tick.setAttribute('aria-pressed', ticked ? 'true' : 'false');
-  tick.setAttribute('aria-label', (ticked ? 'Mark unpaid for ' : 'Mark paid for ') + labelOf(paidNow || !early.length ? key : early[0]) + ': ' + d.name);
-  tick.disabled = !ticked && (!due || bal <= 0);
-  tick.onclick = () => toggleDebt(d);
-  const nm = document.createElement('div'); nm.className = 'd-name';
-  const st = document.createElement('strong'); st.textContent = d.name;
-  const sm = document.createElement('small'); sm.className = 'num';
-  const paidText = m => { const i = interestIn(d, m); return 'Paid ' + money(paymentIn(d, m)) + (m === key ? ' in ' + labelOf(m) : ' early (in ' + labelOf(m) + ' budget)') + (i ? ' · ' + money(i) + ' of it interest' : ''); };
-  sm.textContent = paidNow ? paidText(key) : early.length ? paidText(early[0])
-    : due ? money(due) + ' due in ' + labelOf(key) : (bal <= 0 ? 'Nothing left to pay' : 'Nothing due in ' + labelOf(key));
-  nm.append(st, sm);
-  const bl = document.createElement(state.canEdit ? 'button' : 'div'); bl.className = 'd-bal';
-  bl.innerHTML = '<b class="num"></b><small class="num"></small>';
-  bl.querySelector('b').textContent = money(bal);
-  bl.querySelector('small').textContent = 'of ' + money(start);
-  if (state.canEdit) { const c = document.createElement('span'); c.className = 'chg'; c.textContent = ' · Change'; bl.querySelector('small').append(c); }
-  if (state.canEdit) {
-    bl.type = 'button'; bl.setAttribute('aria-label', 'Change what you owe on ' + d.name + ', now ' + money(bal));
-    bl.onclick = () => { state.openEdit = d.id; state.focusOwing = d.id; renderAll(); };
+function convertOldDebts() {
+  if (!state.canEdit || !keys().length || state.converting) return;
+  const old = Object.values(state.debts).filter(d => d.owed === undefined);
+  if (!old.length) return;
+  state.converting = true;
+  for (const d of old) {
+    const { bal, from } = oldBalanceNow(d);
+    const next = { ...d, owed: bal, lastPayment: oldFinalMonth(d, bal, from), rate: Number(d.rate) || 0, monthly: d.monthly ?? null };
+    state.debts[d.id] = next;
+    const { id, ...body } = next; state.dcol.doc(id).set(body).catch(() => {});
   }
-  top.append(tick, nm, bl);
-  const bar = document.createElement('div'); bar.className = 'bar';
-  bar.innerHTML = '<i></i>'; bar.firstChild.style.width = (start ? Math.max(0, Math.min(100, (start - bal) / start * 100)) : 0) + '%';
-  const meta = document.createElement('div'); meta.className = 'd-meta';
-  const pill = document.createElement('span'); pill.className = 'pill num' + (pk === 'done' ? ' done' : '');
-  pill.textContent = pk === 'done' ? 'Paid off' : pk === 'never' ? 'Payment too low to clear' : pk ? 'Clear by ' + labelOf(pk) : 'No end date';
-  const info = document.createElement('span'); info.className = 'num';
-  const tag = document.createElement('span'); tag.className = 'tag ' + (free ? 'free' : 'interest');
-  tag.textContent = free ? 'Interest-free' : d.rate + '% interest';
-  info.textContent = Number(d.monthly) ? money(d.monthly) + '/month' : d.lastPayment ? 'spread to ' + labelOf(d.lastPayment) : 'no set payment';
-  meta.append(tag, pill, info);
-  const lo = lastOverride(d, key);
-  if (lo && (d.carried || {})[lo]) {
-    const note = document.createElement('span'); note.className = 'set-note';
-    note.textContent = 'Carried over from ' + labelOf(d.carried[lo]);
-    meta.append(note);
-  } else if (lo) {
-    const note = document.createElement('span'); note.className = 'set-note';
-    note.textContent = 'Balance set by you in ' + labelOf(lo);
-    if (state.canEdit) {
-      const undo = document.createElement('button'); undo.type = 'button'; undo.className = 'linkbtn undo'; undo.textContent = 'Undo';
-      undo.setAttribute('aria-label', 'Undo the balance you set for ' + d.name + ' in ' + labelOf(lo));
-      undo.onclick = () => { const o = { ...(d.overrides || {}) }; delete o[lo]; saveDebt({ ...d, overrides: o }, d.name + ' back to the calculated balance'); };
-      note.append(' · ', undo);
-    }
-    meta.append(note);
-  }
-  if (state.canEdit) {
-    const eb = document.createElement('button'); eb.className = 'linkbtn'; eb.type = 'button';
-    eb.textContent = state.openEdit === d.id ? 'Close' : 'Edit';
-    eb.onclick = () => { state.openEdit = state.openEdit === d.id ? null : d.id; renderAll(); };
-    meta.append(eb);
-  }
-  li.append(top, bar, meta);
-  if (state.openEdit === d.id) li.append(editForm(d));
-  return li;
-}
-
-function editForm(d) {
-  const f = document.createElement('form'); f.className = 'edit'; f.autocomplete = 'off';
-  const field = (lab, id, val, type) => {
-    const l = document.createElement('label'); l.textContent = lab;
-    const i = document.createElement('input'); i.id = id + '-' + d.id; i.value = val ?? ''; if (type) i.type = type; else i.inputMode = 'decimal';
-    l.append(i); f.append(l); return i;
-  };
-  const key = state.current, owingNow = shownBal(d, key);
-  const ow = field('OWING IN ' + labelOf(key).toUpperCase(), 'eo', owingNow);
-  ow.closest('label').title = 'Type the balance from your statement. Later months recalculate from it.';
-  if (state.focusOwing === d.id) { state.focusOwing = null; setTimeout(() => { ow.focus(); ow.select(); }, 0); }
-  const n = field('NAME', 'en', d.name, 'text');
-  const b = field('OWED IN ' + labelOf(d.since || START).toUpperCase(), 'eb', d.balance);
-  const mo = field('PER MONTH', 'em', d.monthly ?? '');
-  const r = field('INTEREST %', 'er', d.rate || '');
-  const lp = field('LAST PAYMENT', 'el', d.lastPayment || '', 'month');
-  const row = document.createElement('div'); row.className = 'row';
-  const del = document.createElement('button'); del.type = 'button'; del.className = 'btn ghost'; del.textContent = 'Delete debt';
-  del.onclick = async () => {
-    if (!del.dataset.armed) { del.dataset.armed = '1'; del.textContent = 'Delete ' + d.name + '?'; del.className = 'btn danger'; return; }
-    delete state.debts[d.id]; state.openEdit = null; renderAll();
-    try { await state.dcol.doc(d.id).delete(); toast('Deleted ' + d.name); } catch (e) { toast(failMsg(e)); }
-  };
-  const sv = document.createElement('button'); sv.type = 'submit'; sv.className = 'btn'; sv.textContent = 'Save';
-  row.append(del, sv); f.append(row);
-  f.onsubmit = e => {
-    e.preventDefault();
-    const bal = parseAmt(b.value); if (bal === null) { toast('Type the amount owed, like 1200'); return; }
-    const m = mo.value.trim() === '' ? null : parseAmt(mo.value);
-    const rt = r.value.trim() === '' ? 0 : parseAmt(r.value);
-    const next = { ...d, name: n.value.trim() || d.name, balance: bal, monthly: m, rate: rt || 0, lastPayment: lp.value || null };
-    // A typed "owing" figure is stored as this month's starting balance, so this month's tick still applies on top
-    const want = parseAmt(ow.value);
-    if (want === null || want < 0) { toast('Type what you owe now, like 1200'); return; }
-    if (Math.abs(want - owingNow) >= 0.005) {
-      const startOf = overrideFor(next, key, want);
-      next.overrides = { ...(d.overrides || {}), [key]: Math.round(startOf * 10000) / 10000 };
-      if ((d.carried || {})[key]) { next.carried = { ...d.carried }; delete next.carried[key]; }
-    }
-    state.openEdit = null;
-    saveDebt(next, 'Saved ' + next.name + (next.overrides !== d.overrides ? ' · ' + money(want) + ' owing in ' + labelOf(key) : ''));
-  };
-  return f;
-}
-
-function renderDebts() {
-  const key = state.current;
-  $('title').textContent = 'Debts · ' + labelOf(key);
-  const ds = sortedDebts();
-  let total = 0, start = 0, monthly = 0, free = null, never = false, dueCount = 0, dueAmt = 0, paidAmt = 0;
-  for (const d of ds) {
-    const bal = shownBal(d, key); total += bal; start += Number(d.balance) || 0;
-    const due = dueIn(d, key);
-    if ((bal > 0 || paymentIn(d, key) > 0) && !endedBefore(d, key)) { monthly += regularIn(d, key); if (due) { dueCount++; dueAmt += due; paidAmt += paymentIn(d, key) || (key === calNow() ? earlyPays(d, key).reduce((s, k) => s + paymentIn(d, k), 0) : 0); } }
-    const pk = payoffKey(d);
-    if (pk === 'never' || (pk === null && bal > 0)) never = true; else if (pk && pk !== 'done' && (!free || pk > free)) free = pk;
-  }
-  const a = state.assets, assets = (Number(a.savings) || 0) + (Number(a.investments) || 0) + (Number(a.kiwisaver) || 0);
-  $('dTotal').textContent = money(total);
-  $('dTotalLabel').textContent = key === calNow() ? 'Total debt now' : key < calNow() ? 'Total debt in ' + labelOf(key) : 'Total debt in ' + labelOf(key) + ' (projected)';
-  $('dSub').textContent = money(paidAmt) + ' of ' + money(dueAmt) + ' paid in ' + labelOf(key);
-  $('dMeter').style.width = (dueAmt ? Math.min(100, paidAmt / dueAmt * 100) : 0) + '%';
-  $('dPaid').textContent = money(Math.max(0, start - total));
-  $('dMonthly').textContent = money(monthly);
-  $('dFree').textContent = never ? 'Not yet set' : free ? labelOf(free) : 'Done';
-  $('dNet').textContent = money(assets - total);
-  $('dRepaid').innerHTML = '<b>' + esc(money(total)) + '</b> owing · ' + dueCount + ' due in ' + esc(labelOf(key));
-  $('sumAssets').innerHTML = '<b>' + esc(whole(assets)) + '</b> in total';
-  for (const [id, k] of [['aSavings', 'savings'], ['aInvest', 'investments'], ['aKiwi', 'kiwisaver']]) {
-    const el = $(id); if (document.activeElement !== el) el.value = money(a[k]); el.readOnly = !state.canEdit;
-  }
-  const ul = $('lDebts'); ul.innerHTML = '';
-  const shown = ds.filter(d => state.dfilter === 'all' || (!endedBefore(d, key) && (state.dfilter === 'due' ? dueIn(d, key) > 0 : shownBal(d, key) > 0 || paymentIn(d, key) > 0)));
-  const gone = ds.filter(d => endedBefore(d, key)).length;
-  if (!shown.length) { const li = document.createElement('li'); li.className = 'empty-row'; li.textContent = state.dfilter === 'due' ? 'Nothing due this month.' : 'No debts left by ' + labelOf(key) + '.'; ul.appendChild(li); }
-  if (gone && state.dfilter !== 'all') $('dRepaid').innerHTML += ' · ' + gone + ' finished before this month';
-  shown.forEach(d => ul.appendChild(debtRow(d)));
-  document.querySelectorAll('.dchip').forEach(c => c.setAttribute('aria-pressed', c.dataset.df === state.dfilter ? 'true' : 'false'));
+  state.converting = false;
+  renderAll();
 }
 
 // Shrink the big summary figure until it fits on one line
@@ -1194,7 +1029,7 @@ $('themeBtn').onclick = () => {
 
 /* ---------- folding sections ---------- */
 // Lists start folded so each tab opens on its summary; what you open or close is remembered on this device
-const FOLD_DEFAULTS = { bills: true, spend: true, assets: true, debts: true, budgetStats: false, debtStats: false };
+const FOLD_DEFAULTS = { bills: true, spend: true, debts: true, budgetStats: false };
 state.collapsed = (() => { try { return { ...FOLD_DEFAULTS, ...(JSON.parse(load('mm-collapsed') || '{}') || {}) }; } catch (e) { return { ...FOLD_DEFAULTS }; } })();
 function applyCollapse() {
   document.querySelectorAll('[data-sec]').forEach(b => {
@@ -1230,6 +1065,7 @@ function renderAll() {
   document.getElementById('app').classList.toggle('ro', !state.canEdit);
   $('budgetView').hidden = state.view !== 'budget';
   $('debtsView').hidden = state.view !== 'debts';
+  $('monthnav').hidden = state.view === 'debts';
   $('debtForm').hidden = !state.canEdit;
   document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.view === state.view ? 'true' : 'false'));
   renderMonthPicker();
@@ -1245,9 +1081,6 @@ $('month').onchange = e => setMonth(e.target.value);
 $('prev').onclick = () => { const ks = keys(); setMonth(ks[ks.indexOf(state.current) - 1]); };
 $('next').onclick = () => { const ks = keys(); setMonth(ks[ks.indexOf(state.current) + 1]); };
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => setView(t.dataset.view));
-document.querySelectorAll('.dchip').forEach(c => c.onclick = () => { state.dfilter = c.dataset.df; renderAll(); });
-document.querySelectorAll('.achip').forEach(c => c.onclick = () => { state.strategy = c.dataset.s; store('mm-strategy', c.dataset.s); renderAll(); });
-document.querySelectorAll('.ashare').forEach(c => c.onclick = () => { state.share = Number(c.dataset.p); store('mm-share', c.dataset.p); renderAll(); });
 state.strategy = load('mm-strategy') === 'snowball' ? 'snowball' : 'avalanche';
 state.share = [1, 0.75, 0.5].includes(Number(load('mm-share'))) ? Number(load('mm-share')) : 1;
 { let w = innerWidth, t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => { if (innerWidth === w) return; w = innerWidth; fitBig(); }, 150); }); }
@@ -1265,18 +1098,6 @@ $('income').onchange = e => {
   saveMonths(Object.fromEntries(ks.map(k => [k, { income: n }])),
     'Income updated for ' + labelOf(state.current) + (ks.length > 1 ? ' onwards' : ''));
 };
-
-for (const [id, k] of [['aSavings', 'savings'], ['aInvest', 'investments'], ['aKiwi', 'kiwisaver']]) {
-  const el = $(id);
-  el.onfocus = () => { el.value = state.assets[k]; el.select(); };
-  el.onblur = () => { el.value = money(state.assets[k]); };
-  el.onkeydown = e => { if (e.key === 'Enter') el.blur(); };
-  el.onchange = async () => {
-    const n = parseAmt(el.value); if (n === null) { toast('Type a number, like 1500'); return; }
-    state.assets = { ...state.assets, [k]: n }; renderAll();
-    try { await state.adoc.set(state.assets); toast('Updated'); } catch (e) { toast(failMsg(e)); }
-  };
-}
 
 $('addForm').onsubmit = e => {
   e.preventDefault();
@@ -1296,8 +1117,7 @@ $('debtForm').onsubmit = e => {
   const mo = $('ndMonthly').value.trim() ? parseAmt($('ndMonthly').value) : null;
   const rt = $('ndRate').value.trim() ? parseAmt($('ndRate').value) || 0 : 0;
   const order = Math.max(0, ...Object.values(state.debts).map(d => d.order || 0)) + 1;
-  // A new debt's balance counts from the month it's added
-  saveDebt({ id: 'd' + Date.now().toString(36), order, name, balance: bal, since: calNow(), monthly: mo, rate: rt, lastPayment: $('ndLast').value || null, link: null, paid: {} }, 'Added ' + name);
+  saveDebt({ id: 'd' + Date.now().toString(36), order, name, owed: bal, monthly: mo, rate: rt, lastPayment: $('ndLast').value || null }, 'Added ' + name);
   ['ndName', 'ndBal', 'ndMonthly', 'ndRate', 'ndLast'].forEach(i => $(i).value = '');
 };
 
@@ -1305,7 +1125,7 @@ $('untickAll').onclick = () => {
   const b = $('untickAll');
   if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Untick everything this month?'; setTimeout(() => { delete b.dataset.armed; b.textContent = 'Untick all'; }, 3000); return; }
   delete b.dataset.armed; b.textContent = 'Untick all';
-  saveItems(cur().items.map(x => debtForItem(x) ? x : { ...x, paid: false }), 'Unticked everything except debt repayments');
+  saveItems(cur().items.map(x => ({ ...x, paid: false })), 'Unticked everything');
 };
 
 $('newMonth').onclick = async () => {
@@ -1317,50 +1137,35 @@ $('newMonth').onclick = async () => {
 };
 
 /* ---------- complete a month ---------- */
-// What a debt owes at the end of month `key`, with the month treated as over: its interest is added whether or not it was paid
-function closingBal(d, key) {
-  let bal = Number(d.balance) || 0; const r = (Number(d.rate) || 0) / 1200;
-  for (let m = d.since || START; m <= key; m = nextKey(m)) {
-    const o = ovr(d, m); if (o !== null) bal = o;
-    bal = Math.max(0, bal * (1 + r) - paymentIn(d, m));
-  }
-  return Math.round(bal * 10000) / 10000;
-}
 function completePlan(key) {
   const m = state.months[key], open = m.items.filter(it => !it.paid);
-  const debts = Object.values(state.debts).filter(d => (d.since || START) <= key).map(d => ({ d, bal: closingBal(d, key) }));
-  return { next: nextKey(key), debts, owing: debts.reduce((t, x) => t + round2(x.bal), 0), open, openAmt: open.reduce((t, i) => t + (Number(i.amount) || 0), 0) };
+  return { next: nextKey(key), open, openAmt: open.reduce((t, i) => t + (Number(i.amount) || 0), 0) };
 }
 function resetComplete() { const b = $('completeMonth'); clearTimeout(b.t); delete b.dataset.armed; b.textContent = 'Complete this month'; $('completeNote').hidden = true; }
-// Each debt's end-of-month balance becomes the next month's starting balance, then the month is removed.
-// A copy goes to the archive first, so a completed month can be restored.
+// The month is removed, and the next one is started from it if it doesn't exist yet.
+// A copy goes to the archive first, so a completed month can be restored. Debts aren't touched.
 async function completeMonth(key) {
   const p = completePlan(key), m = state.months[key], b = $('completeMonth');
   b.disabled = true;
   try {
-    await state.db.collection('archive').doc(key).set({ month: m, completedAt: new Date().toISOString(),
-      debts: p.debts.map(x => ({ id: x.d.id, overrides: x.d.overrides || {}, carried: x.d.carried || {} })) });
+    await state.db.collection('archive').doc(key).set({ month: m, completedAt: new Date().toISOString() });
     if (!state.months[p.next]) {
       const doc = { label: labelOf(p.next), income: m.income, items: m.items.map(x => ({ ...x, paid: false })) };
       await state.col.doc(p.next).set(doc); state.months[p.next] = doc;
-    }
-    for (const x of p.debts) {
-      const d = { ...x.d, overrides: { ...(x.d.overrides || {}), [p.next]: x.bal }, carried: { ...(x.d.carried || {}), [p.next]: key } };
-      const { id, ...body } = d; await state.dcol.doc(id).set(body); state.debts[id] = d;
     }
     await state.col.doc(key).delete();
   } catch (e) { b.disabled = false; renderAll(); toast('Couldn’t complete ' + labelOf(key) + '. It hasn’t been removed. Try again.'); return; }
   b.disabled = false;
   delete state.months[key]; state.openFrom = keys()[0] || null;
   setMonth(p.next);
-  toast(labelOf(key) + ' completed · ' + labelOf(p.next) + ' starts with ' + money(p.owing) + ' owing');
+  toast(labelOf(key) + ' completed · now on ' + labelOf(p.next));
 }
 $('completeMonth').onclick = () => {
   const b = $('completeMonth'), key = state.current;
   if (b.dataset.armed !== key) {
     const p = completePlan(key);
     b.dataset.armed = key; b.textContent = 'Yes, complete ' + labelOf(key);
-    $('completeNote').textContent = labelOf(key) + ' will be removed and your debts carry over to ' + labelOf(p.next) + ' with ' + money(p.owing) + ' owing.' +
+    $('completeNote').textContent = labelOf(key) + ' will be removed and you’ll move on to ' + labelOf(p.next) + '.' +
       (p.open.length ? ' ' + p.open.length + (p.open.length === 1 ? ' item isn’t' : ' items aren’t') + ' ticked yet (' + money(p.openAmt) + ') and will be removed with it.' : '') +
       ' Tap again to confirm.';
     $('completeNote').hidden = false;
@@ -1393,11 +1198,13 @@ function pickDefault() {
     state.openFrom = keys()[0] || null;
     if (!keys().length) { if (window.appWelcome) window.appWelcome(); else { $('status').hidden = false; $('status').textContent = 'No months yet. Your budget will appear here once it’s loaded.'; } return; }
     if (!state.current || !state.months[state.current]) state.current = pickDefault();
+    convertOldDebts();
     if (!busy()) renderAll();
   }, lost);
   state.dcol.onSnapshot(snap => {
     state.debts = {};
-    snap.docs.forEach(d => { const v = d.data(); state.debts[d.id] = { ...v, id: d.id, paid: { ...(v.paid || {}) } }; });
+    snap.docs.forEach(d => { state.debts[d.id] = { ...d.data(), id: d.id }; });
+    convertOldDebts();
     if (!busy()) renderAll();
   }, lost);
   state.adoc.onSnapshot(s => { if (s.exists) state.assets = { savings: 0, investments: 0, kiwisaver: 0, ...s.data() }; if (!busy()) renderAll(); }, lost);
