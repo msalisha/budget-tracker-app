@@ -856,13 +856,24 @@ function itemRow(it, sortable) {
   const del = document.createElement('button');
   del.className = 'del'; del.type = 'button'; del.textContent = '×';
   del.setAttribute('aria-label', 'Delete ' + (it.name || 'item'));
+  const isBill = it.section === 'bills';
   del.onclick = () => {
     if (!del.classList.contains('confirm')) {
-      del.classList.add('confirm'); del.textContent = 'Delete?'; li.classList.add('wide');
+      // A bill is deleted from this month on, so the confirm names the month
+      del.classList.add('confirm'); del.textContent = isBill ? 'Delete from ' + labelOf(state.current) + ' on?' : 'Delete?'; li.classList.add('wide');
       setTimeout(() => { if (del.isConnected) { del.classList.remove('confirm'); del.textContent = '×'; li.classList.remove('wide'); } }, 3000);
       return;
     }
-    saveItems(cur().items.filter(x => x.id !== it.id), 'Deleted ' + (it.name || 'item'));
+    if (!isBill) { saveItems(cur().items.filter(x => x.id !== it.id), 'Deleted ' + (it.name || 'item')); return; }
+    // Bills: gone from this month and every later month; ticked (already paid) copies in later months stay
+    const same = x => x.section === 'bills' && (it.id ? x.id === it.id : x.name === it.name);
+    const patches = { [state.current]: { items: cur().items.filter(x => x.id !== it.id) } };
+    let later = 0;
+    for (const k of monthsFrom(state.current).slice(1)) {
+      const items = state.months[k].items, next = items.filter(x => !(same(x) && !x.paid));
+      if (next.length !== items.length) { patches[k] = { items: next }; later++; }
+    }
+    saveMonths(patches, 'Removed ' + (it.name || 'bill') + ' from ' + labelOf(state.current) + (later ? ' and ' + later + ' later month' + (later === 1 ? '' : 's') : ''));
   };
   if (!state.canEdit) del.hidden = true;
   li.append(tick, name, amt, del);

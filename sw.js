@@ -1,5 +1,5 @@
 /* Keeps Budget Tracker working offline. Bump VERSION to roll out a new release. */
-const VERSION = 'v8';
+const VERSION = 'v9';
 const SHELL = 'budget-shell-' + VERSION, FONTS = 'budget-fonts';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
 
