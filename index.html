@@ -1235,7 +1235,23 @@ $('addForm').onsubmit = e => {
   if (!name) { toast('Give the expense a name'); return; }
   if (n === null) { toast('Type an amount, like 45 or 45.50'); return; }
   const it = { id: 'i' + Date.now().toString(36), name, amount: n, section: $('addSec').value, paid: false };
-  saveItems([...cur().items, it], 'Added ' + name);
+  if (it.section !== 'bills') saveItems([...cur().items, it], 'Added ' + name);
+  else {
+    // A new bill goes into this month and every later month, with the same id so later edits and deletes carry forward.
+    // It goes at the end of each month's bills. A later month that already has a bill by that name is skipped.
+    const want = name.toLowerCase(), withBill = items => {
+      let at = -1; items.forEach((x, k) => { if (x.section === 'bills') at = k; });
+      const out = items.slice(); out.splice(at + 1, 0, { ...it }); return out;
+    };
+    const patches = { [state.current]: { items: withBill(cur().items) } };
+    let later = 0;
+    for (const k of monthsFrom(state.current).slice(1)) {
+      const items = state.months[k].items;
+      if (items.some(x => x.section === 'bills' && (x.name || '').trim().toLowerCase() === want)) continue;
+      patches[k] = { items: withBill(items) }; later++;
+    }
+    saveMonths(patches, 'Added ' + name + ' to ' + labelOf(state.current) + (later ? ' and ' + later + ' later month' + (later === 1 ? '' : 's') : ''));
+  }
   $('addName').value = ''; $('addAmt').value = ''; $('addName').focus();
 };
 
