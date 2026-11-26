@@ -25,3 +25,4 @@ Deleting the app from the Home Screen, or clearing Safari's website data, delete
 - `index.html` is the whole app.
 - `sw.js` keeps it working offline. Bump `VERSION` when releasing a change.
 - `manifest.webmanifest` and `icons/` cover the Home Screen name and icon.
+- `tests/totals.test.js` checks that the totals at the top of the Budget tab match the lines listed, on later months, after a bill is added (made-up data). Run `node tests/totals.test.js`; it needs Python 3 and Playwright.
