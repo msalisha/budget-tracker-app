@@ -1,6 +1,6 @@
 # Budget Tracker
 
-A month-by-month budget and debt tracker that installs on an iPhone's Home Screen and works offline.
+A month-by-month budget and debt tracker that installs on an iPhone's Home Screen and works offline. Its Payoff tab compares paying off debt with none, 25%, 50% or all of each month's leftover.
 
 Your data is stored **on your phone only**, in the browser's storage for this app. Nothing is sent to a server, and nothing personal is kept in this repository.
 

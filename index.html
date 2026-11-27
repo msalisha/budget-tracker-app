@@ -72,6 +72,12 @@
   color-scheme: light }
 body[data-view="budget"] { --brand: var(--lime); --brand-text: var(--lime); }
 body[data-view="debts"] { --brand: var(--rose); --brand-text: var(--rose); }
+body[data-view="payoff"] { --brand: var(--amber); --brand-text: var(--amber); }
+/* Payoff plans: no extra is grey and dashed; 25%, 50% and all of the leftover are teal, violet and orange
+   (checked for colour-blind separation on both themes' surfaces) */
+:root { --p0: #8f9bbd; --p1: #0891b2; --p2: #8b5cf6; --p3: #d97706; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --p0: #566180; --p1: #0891b2; --p2: #7c3aed; --p3: #d97706; } }
+:root[data-theme="light"] { --p0: #566180; --p1: #0891b2; --p2: #7c3aed; --p3: #d97706; }
 
 * { box-sizing: border-box }
 body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 16px; line-height: 1.5; transition: background .25s; }
@@ -110,7 +116,7 @@ button { cursor: pointer; }
 #month { appearance: none; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 14px; font-weight: 600; min-width: 140px; text-align: center; }
 @media (max-width: 640px) {
   .top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: var(--r-md); overflow: visible; }
+  .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: var(--r-md); overflow: visible; }
   .tab { flex-direction: column; justify-content: center; gap: 4px; padding: 8px 2px; border-radius: 9px; font-size: clamp(9px, 2.7vw, 11px); letter-spacing: .02em; min-width: 0; }
   .tab .long { display: none; }
   .tab .short { display: block; }
@@ -346,9 +352,10 @@ h1 { font-family: var(--sans); font-weight: 600; letter-spacing: .01em; font-siz
 .tab::before { box-shadow: 0 0 calc(8px * var(--glow)) currentColor; }
 #tabBudget::before { background: var(--lime); color: var(--lime); }
 #tabDebts::before { background: var(--rose); color: var(--rose); }
+#tabPayoff::before { background: var(--amber); color: var(--amber); }
 .tab[aria-selected="true"]::before { background: var(--brand); color: var(--brand); }
 @media (max-width: 640px) {
-  .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .tab { font-size: clamp(8px, 2.4vw, 10.5px); letter-spacing: .04em; }
 }
 .iconbtn, #month { background: var(--panel); border-color: var(--line); font-family: var(--mono); }
@@ -422,6 +429,64 @@ tbody tr:hover td { background: var(--hover); }
 
 /* ---------- Shared bits ---------- */
 
+/* ---------- Payoff tab ---------- */
+.card { position: relative; background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); border-radius: var(--r-md);
+  box-shadow: inset 0 1px 0 var(--panel-hi), 0 10px 30px var(--shadow); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.card > * { min-width: 0; }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
+.card .list-head h2 { display: inline-flex; align-items: center; gap: 10px; }
+.plans { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .plans { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.plan { --pc: var(--p0); text-align: left; display: grid; gap: 4px; align-content: start; padding: 12px; border-radius: var(--r-md); min-width: 0;
+  background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--panel-hi); }
+.plan[aria-pressed="true"] { border-color: var(--pc); box-shadow: inset 0 0 0 1px var(--pc), 0 0 calc(18px * var(--glow)) color-mix(in srgb, var(--pc) 30%, transparent); }
+.plan .p-name { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.plan .p-name i { width: 18px; height: 0; border-top: 3px solid var(--pc); border-radius: 2px; flex: none; }
+.plan[data-p="0"] .p-name i { border-top-style: dashed; }
+.plan .p-date { font-family: var(--mono); font-size: 18px; font-weight: 600; color: var(--fg); }
+.plan .p-gain { font-size: 13px; color: var(--muted); }
+.plan .p-gain b { color: var(--fg); font-weight: 600; }
+.plan[aria-pressed="true"] .p-name { color: var(--fg); }
+.p1 { --pc: var(--p1); } .p2 { --pc: var(--p2); } .p3 { --pc: var(--p3); }
+.chart { position: relative; min-width: 0; touch-action: pan-y; }
+.chart svg { display: block; overflow: visible; }
+.chart text { font-family: var(--mono); font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.chart .grid { stroke: var(--c-grid); stroke-width: 1; }
+.chart .axis { stroke: var(--line); stroke-width: 1; }
+.chart .ln { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .ln.sel { stroke-width: 3; }
+.chart .ln0 { stroke: var(--p0); stroke-dasharray: 5 4; } .chart .ln1 { stroke: var(--p1); } .chart .ln2 { stroke: var(--p2); } .chart .ln3 { stroke: var(--p3); }
+.chart .dot { stroke: var(--surface); stroke-width: 2; }
+.chart .dot0 { fill: var(--p0); } .chart .dot1 { fill: var(--p1); } .chart .dot2 { fill: var(--p2); } .chart .dot3 { fill: var(--p3); }
+.chart text.end { fill: var(--fg); font-weight: 600; }
+.chart .cross { stroke: var(--fg); stroke-width: 1; opacity: .35; }
+.tip { position: absolute; pointer-events: none; background: var(--tip-bg); color: var(--fg); border: 1px solid var(--line-hi); border-radius: 8px; padding: 8px 10px;
+  font-size: 13px; line-height: 1.5; z-index: 3; box-shadow: 0 8px 24px var(--shadow); min-width: 170px; }
+.tip b { display: block; font-family: var(--mono); font-weight: 600; margin-bottom: 2px; }
+.tip div { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: center; }
+.tip i { width: 14px; border-top: 3px solid; border-radius: 2px; }
+.tip span.v { font-family: var(--mono); text-align: right; }
+.keyrow { display: flex; gap: 8px 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.keyrow span { display: inline-flex; align-items: center; gap: 6px; }
+.keyrow i { width: 18px; border-top: 3px solid; border-radius: 2px; }
+ol.dlines { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+ol.dlines li { display: grid; gap: 6px; }
+.dl-top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.dl-top strong { font-weight: 600; overflow-wrap: anywhere; }
+.dl-top small { color: var(--muted); font-size: 13px; }
+.dl-when { text-align: right; white-space: nowrap; font-family: var(--mono); font-size: 13px; }
+.dl-when em { display: block; font-style: normal; color: var(--muted); font-family: var(--sans); }
+.dl-when em.gain { color: var(--fg); font-weight: 600; }
+.dl-track { position: relative; height: 10px; border-radius: 5px; background: var(--soft); }
+.dl-base { position: absolute; left: 0; top: 0; bottom: 0; border: 1.5px dashed var(--p0); border-radius: 5px; opacity: .8; }
+.dl-bar { position: absolute; left: 0; top: 1px; bottom: 1px; border-radius: 4px; background: var(--pc, var(--p0)); }
+.dl-axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.cmp-wrap { overflow-x: auto; }
+.cmp-wrap table { min-width: 0; font-size: 13px; }
+.cmp-wrap th, .cmp-wrap td { padding: 8px 6px; white-space: normal; }
+.cmp-wrap td:first-child { font-weight: 600; }
+.how p b { color: var(--fg); }
+
 /* ---------- Theme switch ---------- */
 .kicker-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 -16px; }
 .kicker-row .kicker { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
@@ -487,6 +552,7 @@ body { min-height: 100vh; min-height: 100dvh; -webkit-tap-highlight-color: trans
     <div class="tabs" role="tablist" aria-label="Pages">
       <button class="tab" role="tab" id="tabBudget" data-view="budget" aria-selected="true"><span class="long">BUDGET</span><span class="short">BUDGET</span></button>
       <button class="tab" role="tab" id="tabDebts" data-view="debts" aria-selected="false"><span class="long">DEBTS</span><span class="short">DEBTS</span></button>
+      <button class="tab" role="tab" id="tabPayoff" data-view="payoff" aria-selected="false"><span class="long">PAYOFF</span><span class="short">PAYOFF</span></button>
     </div>
     <div class="monthnav" id="monthnav">
       <button class="iconbtn" id="prev" aria-label="Previous month">‹</button>
@@ -588,6 +654,66 @@ body { min-height: 100vh; min-height: 100dvh; -webkit-tap-highlight-color: trans
 
       <div class="foot">
         <span>These figures are yours to keep up to date, for example from your statements each month. Nothing here is calculated, and ticking bills on the Budget tab doesn’t change them.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYOFF VIEW -->
+  <div id="payoffView" hidden>
+    <div class="view-inner" style="display:grid;gap:24px">
+      <div class="hero" id="pHero">
+        <div style="display:grid;gap:4px;position:relative;z-index:1">
+          <span class="label" id="pLabel">Debt-free</span>
+          <span class="big num" id="pFree">—</span>
+          <span class="sub" id="pSub"></span>
+        </div>
+        <div class="stats">
+          <div class="stat"><span>Owed now</span><b class="num" id="pOwed"></b></div>
+          <div class="stat"><span>Extra a month</span><b class="num" id="pExtra"></b></div>
+          <div class="stat"><span>Interest to pay</span><b class="num" id="pInt"></b></div>
+          <div class="stat"><span>Interest saved</span><b class="num" id="pSaved"></b></div>
+        </div>
+      </div>
+
+      <section class="card" aria-labelledby="hPlans">
+        <div class="list-head"><h2 id="hPlans">Compare plans</h2></div>
+        <p>How much of each month’s Left over goes to paying off debt. Tap a plan to see it below.</p>
+        <div class="plans" id="pPlans" role="group" aria-label="Payoff plans"></div>
+      </section>
+
+      <section class="card" aria-labelledby="hCurve">
+        <div class="list-head"><h2 id="hCurve">Total owed over time</h2></div>
+        <div class="keyrow" id="pKey" aria-hidden="true"></div>
+        <div class="chart" id="pChart" role="img"></div>
+        <p>Touch or hover the chart to see every plan for that month.</p>
+      </section>
+
+      <section class="card" aria-labelledby="hLines">
+        <div class="list-head"><h2 id="hLines">When each debt is cleared</h2><span class="tot" id="pLinesFor"></span></div>
+        <div class="keyrow" id="pLinesKey"></div>
+        <ol class="dlines" id="pLines"></ol>
+        <div class="dl-axis" id="pAxis" aria-hidden="true"></div>
+      </section>
+
+      <section class="card how" aria-labelledby="hHow">
+        <div class="list-head"><h2 id="hHow">Which debt gets the extra first</h2></div>
+        <div class="filters" role="group" aria-label="Which debt gets the extra first">
+          <button type="button" class="chip pchip" data-s="avalanche" aria-pressed="true">Highest interest first</button>
+          <button type="button" class="chip pchip" data-s="snowball" aria-pressed="false">Smallest balance first</button>
+        </div>
+        <p id="pHow"></p>
+      </section>
+
+      <section class="card" aria-labelledby="hTable">
+        <div class="list-head"><h2 id="hTable">The numbers</h2></div>
+        <div class="cmp-wrap"><table>
+          <thead><tr><th>Plan</th><th>Debt-free</th><th class="r">Extra / mo</th><th class="r">Interest</th></tr></thead>
+          <tbody id="pTable"></tbody>
+        </table></div>
+      </section>
+
+      <div class="foot">
+        <span id="pFoot"></span>
       </div>
     </div>
   </div>
@@ -1077,6 +1203,215 @@ function renderDebts() {
   if (focusId && $(focusId)) $(focusId).focus();
 }
 
+/* ---------- payoff ---------- */
+// What-if plans: a share of each month's Left over (from the Budget tab) is paid off debt on top of the
+// regular payments. Nothing here changes the budget or the Debts tab.
+const PLANS = [
+  { share: 0, name: 'No extra', short: 'No extra' },
+  { share: 0.25, name: '25% of leftover', short: '25%' },
+  { share: 0.5, name: '50% of leftover', short: '50%' },
+  { share: 1, name: 'All leftover', short: '100%' },
+];
+function durationText(n) {
+  if (n <= 0) return 'this month';
+  const y = Math.floor(n / 12), m = n % 12;
+  return [y ? y + (y === 1 ? ' year' : ' years') : '', m ? m + (m === 1 ? ' month' : ' months') : ''].filter(Boolean).join(' ');
+}
+function shortMoney(n) { return n >= 1000 ? '$' + (Math.round(n / 100) / 10).toString().replace(/\.0$/, '') + 'k' : '$' + Math.round(n); }
+function niceStep(max, target) {
+  const raw = max / target, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+}
+// A debt's regular payment: its monthly amount, or what's owed spread evenly up to its last payment month
+function regularPay(d, start) {
+  const m = Number(d.monthly) || 0; if (m > 0) return m;
+  return d.lastPayment && d.lastPayment >= start ? owedOf(d) / (monthsBetween(start, d.lastPayment) + 1) : 0;
+}
+// Each budget month's Left over; months past the last budget month use the last one's
+function leftoverIn(k) {
+  const ks = keys(); if (!ks.length) return 0;
+  const m = state.months[k] || (k > ks[ks.length - 1] ? state.months[ks[ks.length - 1]] : null);
+  return m ? totals(m).left : 0;
+}
+// Month by month: interest is added, regular payments made, then the extra goes to one debt at a time.
+// A debt cleared early keeps its regular payment going to the others until its planned end, since the budget still sets it aside.
+function simulate(share, strategy, plannedEnd) {
+  const start = calNow(), MAX = 600;
+  const ds = sortedDebts().filter(d => owedOf(d) > 0).map(d => ({ d, bal: owedOf(d), r: (Number(d.rate) || 0) / 1200, pay: regularPay(d, start), end: null }));
+  const total0 = ds.reduce((s, x) => s + x.bal, 0), series = [total0];
+  let k = start, interest = 0, extraSum = 0, extraMonths = 0;
+  for (let n = 0; n < MAX && ds.some(x => x.end === null); n++, k = nextKey(k)) {
+    let pool = 0;
+    for (const x of ds) {
+      if (x.end !== null) { if (share > 0 && plannedEnd && plannedEnd[x.d.id] && k <= plannedEnd[x.d.id]) pool += x.pay; continue; }
+      const i = x.bal * x.r; interest += i; x.bal += i;
+      const p = Math.min(x.pay, x.bal); x.bal -= p;
+      if (share > 0 && plannedEnd && plannedEnd[x.d.id] && k <= plannedEnd[x.d.id]) pool += x.pay - p;
+    }
+    let extra = share > 0 ? Math.max(0, leftoverIn(k)) * share : 0;
+    pool += extra;
+    const open = ds.filter(x => x.end === null && x.bal > 0.005)
+      .sort((a, b) => strategy === 'snowball' ? a.bal - b.bal || b.r - a.r : b.r - a.r || a.bal - b.bal);
+    let used = 0;
+    for (const x of open) { if (pool <= 0.005) break; const p = Math.min(pool, x.bal); x.bal -= p; pool -= p; used += p; }
+    if (share > 0) { extraSum += Math.min(extra, used); extraMonths++; }
+    for (const x of ds) if (x.end === null && x.bal <= 0.005) { x.bal = 0; x.end = k; }
+    series.push(ds.reduce((s, x) => s + x.bal, 0));
+  }
+  const done = ds.every(x => x.end !== null);
+  const free = done ? ds.reduce((a, x) => x.end > a ? x.end : a, start) : null;
+  return { start, series, free, months: free ? monthsBetween(start, free) + 1 : null, interest, total0,
+    extra: extraMonths ? extraSum / extraMonths : 0, ends: Object.fromEntries(ds.map(x => [x.d.id, x.end])), debts: ds.map(x => x.d) };
+}
+function payoffPlans() {
+  const strategy = state.strategy;
+  const base = simulate(0, strategy, null);
+  // A debt's planned end: the last payment month you entered, else when its regular payments clear it
+  const planned = Object.fromEntries(base.debts.map(d => [d.id, d.lastPayment || base.ends[d.id]]));
+  return PLANS.map((p, i) => ({ ...p, i, ...(i === 0 ? base : simulate(p.share, strategy, planned)) }));
+}
+const freeText = r => r.free ? labelOf(r.free) : 'Not cleared';
+function soonerText(r, base) {
+  if (!r.free) return 'Not cleared with these payments';
+  if (!base.free) return 'Cleared in ' + durationText(r.months);
+  const n = base.months - r.months;
+  return n > 0 ? durationText(n) + ' sooner' : 'Same as now';
+}
+
+function renderPayoff() {
+  $('title').textContent = 'Payoff';
+  const owing = sortedDebts().filter(d => owedOf(d) > 0);
+  state.plan = Math.min(3, Math.max(0, state.plan));
+  if (!owing.length) {
+    $('pLabel').textContent = 'Debt-free'; $('pFree').textContent = 'Now';
+    $('pSub').textContent = 'Nothing is owed on the Debts tab.';
+    ['pOwed', 'pExtra', 'pInt', 'pSaved'].forEach(id => $(id).textContent = '—');
+    ['pPlans', 'pChart', 'pKey', 'pLines', 'pLinesKey', 'pAxis', 'pTable'].forEach(id => $(id).innerHTML = '');
+    $('pLinesFor').textContent = ''; $('pHow').textContent = ''; $('pFoot').textContent = '';
+    return;
+  }
+  const plans = payoffPlans(), base = plans[0], sel = plans[state.plan];
+
+  // Hero: the chosen plan
+  $('pLabel').textContent = 'Debt-free · ' + sel.name.toLowerCase();
+  $('pFree').textContent = freeText(sel);
+  $('pSub').textContent = sel.free ? (sel.i === 0 ? 'In ' + durationText(sel.months) + ', with just your regular payments' : 'In ' + durationText(sel.months) + ' · ' + soonerText(sel, base))
+    : 'Some debts have no monthly payment or last payment month set.';
+  $('pOwed').textContent = whole(sel.total0);
+  $('pExtra').textContent = sel.i === 0 ? '$0' : whole(sel.extra);
+  $('pInt').textContent = whole(sel.interest);
+  $('pSaved').textContent = sel.i === 0 ? '—' : whole(Math.max(0, base.interest - sel.interest));
+
+  // Plan cards
+  const box = $('pPlans'); box.innerHTML = '';
+  for (const p of plans) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'plan p' + p.i; b.dataset.p = p.i;
+    b.setAttribute('aria-pressed', p.i === state.plan ? 'true' : 'false');
+    const gain = p.i === 0 ? (p.free ? 'In ' + durationText(p.months) : 'Not cleared') : soonerText(p, base);
+    b.innerHTML = '<span class="p-name"><i></i>' + esc(p.name) + '</span><span class="p-date">' + esc(freeText(p)) + '</span>'
+      + '<span class="p-gain">' + (p.i && base.free && p.free && base.months > p.months ? '<b>' + esc(gain) + '</b>' : esc(gain)) + '</span>'
+      + (p.i ? '<span class="p-gain">' + esc(whole(p.extra)) + ' extra a month</span>' : '<span class="p-gain">Regular payments only</span>');
+    b.setAttribute('aria-label', p.name + ': debt-free ' + freeText(p) + ', ' + gain);
+    b.onclick = () => { state.plan = p.i; store('mm-plan', String(p.i)); renderAll(); };
+    box.append(b);
+  }
+
+  // Chart key, then the chart
+  $('pKey').innerHTML = plans.map(p => '<span><i style="border-top-color:var(--p' + p.i + ');' + (p.i ? '' : 'border-top-style:dashed') + '"></i>' + esc(p.name) + '</span>').join('');
+  drawPayoffChart(plans);
+
+  // Each debt: cleared month on the chosen plan, against no extra
+  const span = Math.max(1, ...plans.map(p => p.free ? p.months : Math.min(p.series.length - 1, 120)));
+  const ul = $('pLines'); ul.innerHTML = '';
+  $('pLinesFor').textContent = sel.name;
+  $('pLinesKey').innerHTML = (sel.i ? '<span><i style="border-top-color:var(--p' + sel.i + ')"></i>' + esc(sel.name) + '</span>' : '') + '<span><i style="border-top-color:var(--p0);border-top-style:dashed"></i>No extra</span>';
+  const start = sel.start;
+  const rows = sel.debts.map(d => ({ d, end: sel.ends[d.id], baseEnd: base.ends[d.id] }))
+    .sort((a, b) => (a.end ? 0 : 1) - (b.end ? 0 : 1) || String(a.end).localeCompare(String(b.end)) || (a.d.name || '').localeCompare(b.d.name || ''));
+  for (const r of rows) {
+    const li = document.createElement('li');
+    const len = e => e ? monthsBetween(start, e) + 1 : span;
+    const n = r.end && r.baseEnd ? monthsBetween(r.end, r.baseEnd) : 0;
+    const gain = sel.i === 0 ? (r.end ? 'in ' + durationText(len(r.end)) : 'no payment set') : !r.end ? 'not cleared' : !r.baseEnd ? 'cleared by the extra' : n > 0 ? durationText(n) + ' sooner' : 'same time';
+    li.innerHTML = '<div class="dl-top"><div><strong>' + esc(r.d.name || 'Debt') + '</strong><br><small class="num">' + esc(money(owedOf(r.d))) + ' · ' + (Number(r.d.rate) ? Number(r.d.rate) + '%' : 'interest-free') + '</small></div>'
+      + '<div class="dl-when">' + esc(r.end ? labelOf(r.end) : 'Not cleared') + '<em class="' + (sel.i && n > 0 ? 'gain' : '') + '">' + esc(gain) + '</em></div></div>'
+      + '<div class="dl-track p' + sel.i + '">' + (sel.i ? '<span class="dl-base" style="width:' + Math.min(100, len(r.baseEnd) / span * 100) + '%"></span>' : '')
+      + '<span class="dl-bar" style="width:' + Math.min(100, len(r.end) / span * 100) + '%' + (sel.i ? '' : ';opacity:.7') + '"></span></div>';
+    li.setAttribute('aria-label', (r.d.name || 'Debt') + ': cleared ' + (r.end ? labelOf(r.end) : 'never') + ', ' + gain);
+    ul.append(li);
+  }
+  let endK = start; for (let i = 1; i < span; i++) endK = nextKey(endK);
+  $('pAxis').innerHTML = '<span>' + esc(labelOf(start)) + '</span><span>' + esc(labelOf(endK)) + '</span>';
+
+  // Strategy
+  document.querySelectorAll('.pchip').forEach(c => c.setAttribute('aria-pressed', c.dataset.s === state.strategy ? 'true' : 'false'));
+  $('pHow').innerHTML = state.strategy === 'snowball'
+    ? 'The extra goes to the <b>smallest balance</b> first. Debts disappear sooner, which can feel good, but you may pay a little more interest.'
+    : 'The extra goes to the debt with the <b>highest interest rate</b> first, which saves the most interest. Interest-free debts are paid off last.';
+
+  // Table
+  $('pTable').innerHTML = plans.map(p => '<tr><td>' + esc(p.short) + '</td><td class="num">' + esc(freeText(p)) + (p.free ? '<br><small style="color:var(--muted)">' + esc(durationText(p.months)) + '</small>' : '')
+    + '</td><td class="r num">' + (p.i ? esc(whole(p.extra)) : '$0') + '</td><td class="r num">' + esc(whole(p.interest)) + '</td></tr>').join('');
+
+  const ks = keys();
+  $('pFoot').textContent = 'Estimates from your Debts tab (owed, per month, interest) and each month’s Left over on the Budget tab, starting ' + labelOf(start) + '. '
+    + 'Months after ' + labelOf(ks[ks.length - 1]) + ' use that month’s Left over, and a month that’s over budget adds nothing. '
+    + 'When a debt is cleared early, its regular payment goes to the next one until its planned last payment. '
+    + 'No extra follows each debt’s regular payment, so it can differ by a month from the last payment dates on the Debts tab. Nothing here changes your budget.';
+}
+
+function drawPayoffChart(plans) {
+  const host = $('pChart'); host.innerHTML = '';
+  const W = Math.max(260, host.clientWidth || 600), H = W < 420 ? 220 : 260;
+  const ml = 46, mr = 14, mt = 22, mb = 26, iw = W - ml - mr, ih = H - mt - mb;
+  const N = Math.max(2, ...plans.map(p => p.free ? p.series.length - 1 : Math.min(p.series.length - 1, 120)));
+  const max = Math.max(1, ...plans.map(p => Math.max(...p.series.slice(0, N + 1))));
+  const step = niceStep(max, 4), top = Math.ceil(max / step) * step;
+  const x = i => ml + i / N * iw, y = v => mt + ih - v / top * ih;
+  const start = plans[0].start, keyAt = i => { let k = start; for (let j = 0; j < i; j++) k = nextKey(k); return k; };
+  let s = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">';
+  for (let v = 0; v <= top + 0.5; v += step) s += '<line class="grid" x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (ml - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + shortMoney(v) + '</text>';
+  // Year marks: every January, thinned out when they'd crowd
+  const every = Math.max(1, Math.ceil(40 / (12 / N * iw)));
+  for (let i = 0, k = start; i <= N; i++, k = nextKey(k)) if (k.endsWith('-01') && +k.slice(0, 4) % every === 0) s += '<text x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle">' + k.slice(0, 4) + '</text>';
+  s += '<line class="axis" x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(0) + '" y2="' + y(0) + '"/>';
+  // Unselected plans first, the chosen one on top
+  const order = plans.filter(p => p.i !== state.plan).concat(plans.filter(p => p.i === state.plan));
+  const labels = [];
+  for (const p of order) {
+    const pts = p.series.slice(0, N + 1).map((v, i) => x(i).toFixed(1) + ',' + y(v).toFixed(1)).join(' ');
+    s += '<polyline class="ln ln' + p.i + (p.i === state.plan ? ' sel' : '') + '" points="' + pts + '"/>';
+    if (p.free) { const i = p.series.length - 1; s += '<circle class="dot dot' + p.i + '" cx="' + x(i) + '" cy="' + y(0) + '" r="5"/>'; labels.push({ i: p.i, x: x(i), t: p.short }); }
+  }
+  // Direct labels above each plan's debt-free point, stacked when they'd overlap
+  labels.sort((a, b) => a.x - b.x); let lastX = -99, lift = 0;
+  for (const l of labels) { lift = l.x - lastX < 34 ? lift + 13 : 0; lastX = l.x;
+    const anchor = l.x > W - mr - 34 ? 'end' : l.x < ml + 20 ? 'start' : 'middle';
+    s += '<text class="end" x="' + (anchor === 'end' ? W - mr : anchor === 'start' ? ml : l.x) + '" y="' + (y(0) - 10 - lift) + '" text-anchor="' + anchor + '">' + l.t + '</text>'; }
+  s += '<line class="cross" id="pCross" x1="0" x2="0" y1="' + mt + '" y2="' + y(0) + '" visibility="hidden"/>';
+  s += plans.map(p => '<circle class="dot dot' + p.i + '" id="pHov' + p.i + '" r="4" visibility="hidden"/>').join('');
+  s += '<rect x="' + ml + '" y="' + mt + '" width="' + iw + '" height="' + ih + '" fill="transparent" id="pHit"/></svg>';
+  host.innerHTML = s + '<div class="tip" id="pTip" hidden></div>';
+  host.setAttribute('aria-label', 'Line chart of total owed falling to zero for each plan: ' + plans.map(p => p.name + ' debt-free ' + freeText(p)).join('; ') + '. The numbers are in the table below.');
+  const tip = $('pTip'), cross = $('pCross');
+  const show = e => {
+    const r = host.getBoundingClientRect(), px = e.clientX - r.left;
+    const i = Math.max(0, Math.min(N, Math.round((px - ml) / iw * N)));
+    cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible');
+    plans.forEach(p => { const v = p.series[Math.min(i, p.series.length - 1)], c = $('pHov' + p.i);
+      c.setAttribute('cx', x(i)); c.setAttribute('cy', y(v)); c.setAttribute('visibility', 'visible'); });
+    tip.innerHTML = '<b>' + esc(labelOf(keyAt(i))) + '</b>' + plans.map(p => { const v = p.series[Math.min(i, p.series.length - 1)];
+      return '<div><i style="border-top-color:var(--p' + p.i + ');' + (p.i ? '' : 'border-top-style:dashed') + '"></i><span>' + esc(p.short) + '</span><span class="v">' + (v > 0.005 ? esc(whole(v)) : 'Paid off') + '</span></div>'; }).join('');
+    tip.hidden = false;
+    const w = tip.offsetWidth; let left = x(i) + 12; if (left + w > W) left = x(i) - w - 12; if (left < 0) left = 0;
+    tip.style.left = left + 'px'; tip.style.top = mt + 'px';
+  };
+  const hide = () => { tip.hidden = true; cross.setAttribute('visibility', 'hidden'); plans.forEach(p => $('pHov' + p.i).setAttribute('visibility', 'hidden')); };
+  const hit = $('pHit');
+  hit.addEventListener('pointermove', show); hit.addEventListener('pointerdown', show); hit.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hide(); });
+  if (!drawPayoffChart.bound) { drawPayoffChart.bound = true; document.addEventListener('pointerdown', e => { const t = $('pTip'); if (t && !e.target.closest('#pChart')) { t.hidden = true; const c = $('pCross'); if (c) c.setAttribute('visibility', 'hidden'); document.querySelectorAll('[id^=pHov]').forEach(d => d.setAttribute('visibility', 'hidden')); } }); }
+}
+
 /* One-time switch from the old calculated debts: each debt keeps the balance and final
    payment month the old version showed, as its own figures. Runs for any debt without `owed`,
    including ones in an older backup you import. */
@@ -1192,14 +1527,15 @@ function renderAll() {
   document.getElementById('app').classList.toggle('ro', !state.canEdit);
   $('budgetView').hidden = state.view !== 'budget';
   $('debtsView').hidden = state.view !== 'debts';
-  $('monthnav').hidden = state.view === 'debts';
+  $('payoffView').hidden = state.view !== 'payoff';
+  $('monthnav').hidden = state.view !== 'budget';
   $('debtForm').hidden = !state.canEdit || !state.addingDebt;
   $('addDebtBtn').hidden = !state.canEdit || !!state.addingDebt;
   $('matchBtn').hidden = !state.canEdit || !!state.matchOpen;
   $('matchPanel').hidden = !state.canEdit || !state.matchOpen;
   document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.view === state.view ? 'true' : 'false'));
   renderMonthPicker();
-  if (state.view === 'debts') renderDebts(); else renderBudget();
+  if (state.view === 'debts') renderDebts(); else if (state.view === 'payoff') renderPayoff(); else renderBudget();
   applyCollapse();
   fitBig();
 }
@@ -1212,8 +1548,9 @@ $('prev').onclick = () => { const ks = keys(); setMonth(ks[ks.indexOf(state.curr
 $('next').onclick = () => { const ks = keys(); setMonth(ks[ks.indexOf(state.current) + 1]); };
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => setView(t.dataset.view));
 state.strategy = load('mm-strategy') === 'snowball' ? 'snowball' : 'avalanche';
-state.share = [1, 0.75, 0.5].includes(Number(load('mm-share'))) ? Number(load('mm-share')) : 1;
-{ let w = innerWidth, t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => { if (innerWidth === w) return; w = innerWidth; fitBig(); }, 150); }); }
+state.plan = [0, 1, 2, 3].includes(Number(load('mm-plan'))) && load('mm-plan') !== null ? Number(load('mm-plan')) : 3;
+document.querySelectorAll('.pchip').forEach(c => c.onclick = () => { state.strategy = c.dataset.s; store('mm-strategy', state.strategy); renderAll(); });
+{ let w = innerWidth, t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => { if (innerWidth === w) return; w = innerWidth; fitBig(); if (state.view === 'payoff' && cur()) renderPayoff(); }, 150); }); }
 if (document.fonts) document.fonts.ready.then(fitBig);
 // A tap outside a chart closes its tooltip (touch screens have no hover to end it)
 
@@ -1337,7 +1674,7 @@ function pickDefault() {
   if (state.months[now]) return now;
   return now < ks[0] ? ks[0] : ks[ks.length - 1];
 }
-{ const views = ['budget', 'debts'], h = (location.hash || '').slice(1), v = views.includes(h) ? h : load('mm-view'); if (views.includes(v)) state.view = v; document.body.dataset.view = state.view; }
+{ const views = ['budget', 'debts', 'payoff'], h = (location.hash || '').slice(1), v = views.includes(h) ? h : load('mm-view'); if (views.includes(v)) state.view = v; document.body.dataset.view = state.view; }
 
 (async () => {
   const use = window.claude && window.claude.use;
